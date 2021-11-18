@@ -1,0 +1,434 @@
+/*
+# Copyright 2017 Pixar
+#
+# Licensed under the Apache License, Version 2.0 (the "Apache License")
+# with the following modification; you may not use this file except in
+# compliance with the Apache License and the following modification to it:
+# Section 6. Trademarks. is deleted and replaced with:
+#
+# 6. Trademarks. This License does not grant permission to use the trade
+#    names, trademarks, service marks, or product names of the Licensor
+#    and its affiliates, except as required to comply with Section 4(c) of
+#    the License and to reproduce the content of the NOTICE file.
+#
+# You may obtain a copy of the Apache License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the Apache License with the above modification is
+# distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied. See the Apache License for the specific
+# language governing permissions and limitations under the Apache License.
+*/
+
+/****************************************************************************/
+/*   PxrBump2RoughnessRead                                                  */
+/****************************************************************************/
+
+
+#include "PxrBump2Roughness.h"
+#include "PxrTexture.h"
+#include "PxrManifold.h"
+
+
+
+vector projectToNormal(vector Norm, vector Vin)
+{
+    //input Norm and Vin at both expected to be normalized at input.
+    vector Vout;
+    
+    vector VNtan = Norm*dot(Vin,Norm);  //component of Vin that is tangent to Norm;
+    Vout = Vin-VNtan;                   //subtract out such that Vin is orthogonal to Norm
+    normalize(Vout);
+    return Vout;
+}
+
+shader PxrBump2RoughnessRead
+[[
+    string help = "BumpRoughness / LEADR mapping node, designed to create "\
+                  "aggregate roughness from bump maps.  See "\
+                  "http://graphics.pixar.com/library/BumpRoughness/index.html"\
+                  "for details. This node requires s,t parameterizations",
+    string category="displacement",
+    string primvars = "st"
+]]
+(
+    int enable = 1 [[
+        string widget="checkBox",
+        int connectable = 0,
+        string help = "This will enabling Bump Roughness or disable it",
+    ]],
+    
+    int invertBumpNormal = 0 [[ string widget="checkBox", int connectable=0,
+        string help = "This will invert Bump Normal",
+    ]],
+    
+    Manifold inputManifold = { point(0,0,0), normal(0,0,1), 0.0 }
+    [[ string page="", string tag="struct", string widget="null", string widget="null" ]],
+
+    float baseRoughness = 0.001 [[
+        string help = "This is the roughness of a micro-facet at a single"\
+                      "texel level of the input textures",
+    ]],
+
+    float gain = 1 [[
+        string help = "This is a multiplier to the aggregate roughness and normal map"
+    ]],
+
+    float bumpNormalGain = 1 [[
+        string help = "multiplier to the normal map magnitude"
+    ]],
+
+    float anisotropyGain = 1 [[
+        string help = "This is a multiplier to the aggregate anisotropy"
+    ]],
+
+#ifdef PIXAR_ANIM
+    color input_d1 = color(0) [[ string widget="null" ]],
+    color input_d2 = color(0) [[ string widget="null" ]],
+#endif
+
+    string filename_d1 = "" [[
+        string widget= "assetIdInput",
+        string fileTypes="tex",
+        int    constant = 1,
+        string context = "image context",
+        int    connectable = 0,
+        string help = "Ignored if Deriv1 comes from a connection. This expects the "\
+                      "first derivative map, let H be a height field, then each "\
+                      "channel are defined as r=dH/du, g=dH/dv, b=dontcare",
+    ]],
+
+    string filename_d2 = "" [[
+        string widget= "assetIdInput",
+        string fileTypes="tex",
+        int    constant = 1,
+        string context = "image context",
+        int    connectable = 0,
+        string help = "Ignored if Deriv2 comes from a connection. This expects the "\
+                      "first derivative squared map, let H be a height field, then "\
+                      "each channel are defined as r=(dH/du)^2, g=(dH/dv)^2, "\
+                      "b=dH/du*dH/dv",
+    ]],
+
+    float frequency = 1 [[
+        string help = "This is a multiplier to st-coordinates",
+    ]],
+
+    float rotation = 0 [[
+        string help = "This is a rotation control to st-coordinates, in degrees",
+    ]],
+
+
+    float blur = 0 [[
+        string page="Filtering",
+        string help = "Amount of blur to apply to texture lookup.",
+    ]],
+    
+#ifdef PIXAR_ANIM
+    string filter = "smartcubic" [[
+        string page="Filtering",
+        string widget = "popup",
+        string options = "linear|smartcubic|cubic|closest", 
+        int    connectable = 0,
+        string help = "Which filter to use.",    
+    ]],
+#endif
+
+    float filterScale = 1 [[
+        string widget = "null" , 
+        string help = "Multiplies the size of the texture filter, "\
+                      "less than one for sharper textures.",
+    ]],
+
+    float s = 0 [[
+        int    lockgeom=0,
+        string widget="null",
+        int    connectable = 0
+    ]],
+        
+    float t = 0 [[
+        int    lockgeom=0,
+        string widget="null",
+        int    connectable = 0
+    ]],
+
+    output Struct_Eigen2D resultBumpRough =
+        { 0, 0, vector(1,0,0), vector(0,1,0), vector(0,0,1)} [[
+        string widget="null",
+    ]],
+    
+    output vector resultBumpNormal = normal(0) [[
+        string widget="null",
+    ]],
+    
+    output float resultRoughness = 0 [[
+        string widget="null",
+    ]],
+    
+    output float resultAnisotropy = 0 [[
+        string widget="null"
+    ]],
+    
+    output vector resultAnisotropyDirection = vector(0) [[
+        string widget="null"
+    ]],
+    
+    output float resultHeightMap = 0 [[
+        string widget="null"
+    ]],
+
+#ifdef PIXAR_ANIM
+    output float debugRoughnessU = 0 [[
+        string widget="null"
+    ]],
+    
+    output float debugRoughnessV = 0 [[
+        string widget="null"
+    ]],
+        
+    output vector debugRoughDirU = vector(0) [[
+        string widget="null"
+    ]],
+    
+    output vector debugRoughDirV = vector(0) [[
+        string widget="null"
+    ]],
+#endif
+)
+{
+
+    if (enable == 1) {
+
+#ifndef PIXAR_ANIM
+        string filter = "smartcubic";
+#endif
+        
+        float inputS; float inputT; float textureFilterScale;
+        ColorOpacity resultRGBA_d1; ColorOpacity resultRGBA_d2;
+        color deriv1; color deriv2;
+
+        Texture_Std_SetupInputs(inputManifold, s, t,
+                                filterScale, 
+                                inputS, inputT, textureFilterScale);
+
+        point QT = rotate(point(inputS,inputT,0),radians(rotation),
+                          point(0,0,0),point(0,0,1)) * frequency;
+        inputS = QT[0];
+        inputT = QT[1];
+        
+#ifdef PIXAR_ANIM
+        /* For Pixar Internal Use Only
+        NOTE: The following input_d* options are designed to get around the problem with C++
+        inputs do not have automatic differentiation for osl inputs. Therefore we can't
+        have bumprough from C++ textures and we have a lot of textures (leonardo, udim, etc)
+        that has to be in C++.
+        
+        So the way to get around that is to input osl st-manifold that we know corresponds
+        to the parameterization of the textures that is being read. This is not, in-general,
+        valid. Intuitively, you can think of a slope along one parametric direction do not
+        produce the same look if you rotated the slope vector to another parametric direction.
+        
+        I still think when we have all ols networks, we should remove input_d1 and input_d2
+        unless we can somehow gaurantee that the *manifold* is the exact same that is used
+        for the *texture* input as well.
+        
+        jling (2016.09.27)
+        */
+        
+        
+        if (isconnected(input_d1) ) {
+            deriv1 = input_d1;
+        } else {
+            Texture_GetColor(filename_d1, inputS, inputT, 
+                            filter, textureFilterScale, blur,
+                            color(0), 0, 0,
+                            resultRGBA_d1);
+
+            deriv1 = resultRGBA_d1.c;
+        }
+
+        if (isconnected(input_d2) ) {
+            deriv2 = input_d2;
+        } else {
+            Texture_GetColor(filename_d2, inputS, inputT, 
+                            filter, textureFilterScale, blur,
+                            color(0), 0, 0,
+                            resultRGBA_d2);
+
+            deriv2 = resultRGBA_d2.c;
+        }
+#else
+        Texture_GetColor(filename_d1, inputS, inputT, 
+                        filter, textureFilterScale, blur,
+                        color(0), 0, 0,
+                        resultRGBA_d1);
+        
+        Texture_GetColor(filename_d2, inputS, inputT, 
+                        filter, textureFilterScale, blur,
+                        color(0), 0, 0,
+                        resultRGBA_d2);
+
+        deriv1 = resultRGBA_d1.c;
+        deriv2 = resultRGBA_d2.c;
+                
+#endif
+
+        float mys = inputS;
+        float myt = inputT;
+                
+        vector pPps, pPpt;
+        partialDeriv(P, mys, myt, pPps, pPpt);
+                                
+        float dx=deriv1[0];
+        float dy=deriv1[1];
+        float dxdx=deriv2[0];
+        float dydy=deriv2[1];
+        float dxdy=deriv2[2];
+
+        /* rotation 90-degrees reverses the sign of dx, dy.
+           if not inverting normal maps, do nothing.
+         */
+        if (invertBumpNormal == 0){
+            dx = -dx;
+            dy = -dy;
+        }
+        
+        /* bonus normal map output */
+        vector PN = cross(pPps,pPpt);
+        
+        /*
+          if left-handed crossproduct normal will be opposite of surface normal.
+          We check for this to both flip Normal and handedness of the final frame
+          */
+        int lefthanded = 0; 
+        if (dot(PN,Ng)<0) {
+            /*
+             left-handed coordinate system
+             do some remapping to get it back to right-handedness.
+            */
+            lefthanded = 1;
+        }
+        
+        /*
+           note: the derivative of P is not smooth on each diced face. If the
+           prim is displaced, even if the displacement is zero, the dicing
+           will make the micropolygons facetted.
+        
+           N is a primvar that has been smoothed (thanks Per!), we take advantage
+           of this and reorthogonalize the bumpnormal frame such that the
+           bitangents are ortho-normal to N.
+        */
+
+        PN = normalize(N);
+        if (lefthanded==1) PN = -PN;
+        pPps = normalize(cross(pPpt,PN));
+        pPpt = cross(PN,pPps);
+        
+        
+        //tangent space;
+        if (lefthanded==0) resultBumpNormal = vector(dx*bumpNormalGain, dy*bumpNormalGain, 1);
+        else resultBumpNormal = vector(dx*bumpNormalGain, dy*bumpNormalGain, -1);
+        
+        resultBumpNormal = pPps*resultBumpNormal[0] 
+                         + pPpt*resultBumpNormal[1]
+                         + PN*resultBumpNormal[2];		//project into P space;
+        resultBumpNormal = normalize(resultBumpNormal);
+        
+        /* core LEADR/Bump Roughness Logic */
+        float vargain = gain * gain;
+        float sxx = 2*vargain*(dxdx - dx*dx);
+        float sxy = 2*vargain*(dxdy - dx*dy);
+        float syy = 2*vargain*(dydy - dy*dy);
+
+        float l1, l2;
+        vector v1, v2, tmpfix;
+
+        covarToEigen2D(sxx, sxy, syy, l1, l2, v1, v2, tmpfix);
+
+        /* Projection Note:
+           I have to project the x component of eigenvector to the -pPps-axis
+           and y-component of the eigenvector to the pPpt-axis in order for
+           the ansisotropic direction to be correct.
+
+           Similarly the y-axis facing of the multitexture require similar tweak
+           where x and z-facing projection plane is projecting with "intuitive"
+           porjection axis. I believe that this is a handed-ness issue.
+         */
+
+        vector _pPpu = -pPps*v1[0]+pPpt*v1[1];
+        vector _pPpv = -pPps*v2[0]+pPpt*v2[1];
+
+        float base_roughsqr = baseRoughness*baseRoughness;
+        
+        /* 
+           The discriminant is always positive:
+           roughness U will always be rougher than roughness V.
+         */
+
+        float varianceU = l1+base_roughsqr;
+        float varianceV = l2+base_roughsqr;
+        
+        // add a little value so we don't get div by zero errors
+        float resultRoughnessU = sqrt(varianceU)+1e-12;
+        float resultRoughnessV = sqrt(varianceV)+1e-12;
+        
+        float rudivrv = resultRoughnessU/resultRoughnessV;
+        float resultAnisotropy = (rudivrv-1.0)/(rudivrv+1.0);
+            
+        if (anisotropyGain != 1.0){
+            resultAnisotropy = clamp(resultAnisotropy*anisotropyGain, 
+                                     0.0, 1.0);
+        
+            float _alpha = 1.0/(resultAnisotropy*resultAnisotropy-
+                                2.0*resultAnisotropy+2.0);
+        
+            float variance = varianceU+varianceV;
+            varianceU = variance * _alpha;
+            varianceV = variance *(1.0-_alpha);
+            
+            resultRoughnessU = sqrt(varianceU);
+            resultRoughnessV = sqrt(varianceV);
+        }
+        
+
+        resultRoughness           = resultRoughnessU/(1+resultAnisotropy);
+        resultAnisotropyDirection = _pPpu;
+        resultHeightMap           = deriv1[2];
+        
+        resultBumpRough.l1 = varianceU;
+        resultBumpRough.l2 = varianceV;
+        resultBumpRough.v1 = _pPpu;
+        resultBumpRough.v2 = _pPpv;
+        resultBumpRough.bumpnorm = resultBumpNormal;
+
+#ifdef PIXAR_ANIM
+        debugRoughnessU = resultRoughnessU;
+        debugRoughnessV = resultRoughnessV;
+        debugRoughDirU = _pPpu;
+        debugRoughDirV = _pPpv;        
+#endif
+        
+    } else {
+
+        resultRoughness = baseRoughness;
+        resultAnisotropy = 0;
+        resultAnisotropyDirection = vector(1,0,0);
+        resultBumpNormal = N;
+        
+        resultBumpRough.l1 = baseRoughness*baseRoughness;
+        resultBumpRough.l2 = baseRoughness*baseRoughness;
+        resultBumpRough.v1 = vector(1,0,0);
+        resultBumpRough.v2 = vector(0,1,0);
+        resultBumpRough.bumpnorm = resultBumpNormal;
+        
+#ifdef PIXAR_ANIM
+        debugRoughnessU = baseRoughness;
+        debugRoughnessV = baseRoughness;
+        debugRoughDirU = vector(1,0,0);
+        debugRoughDirV = vector(0,1,0);
+#endif
+
+    }
+}

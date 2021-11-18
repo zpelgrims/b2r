@@ -1,0 +1,433 @@
+/*
+# Copyright 2017 Pixar
+#
+# Licensed under the Apache License, Version 2.0 (the "Apache License")
+# with the following modification; you may not use this file except in
+# compliance with the Apache License and the following modification to it:
+# Section 6. Trademarks. is deleted and replaced with:
+#
+# 6. Trademarks. This License does not grant permission to use the trade
+#    names, trademarks, service marks, or product names of the Licensor
+#    and its affiliates, except as required to comply with Section 4(c) of
+#    the License and to reproduce the content of the NOTICE file.
+#
+# You may obtain a copy of the Apache License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the Apache License with the above modification is
+# distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied. See the Apache License for the specific
+# language governing permissions and limitations under the Apache License.
+*/
+
+/****************************************************************************/
+/*   PxrTriplanarBump2Roughness | Bump2Roughness 3-planar project           */
+/****************************************************************************/
+
+
+#include "PxrManifold.h"
+#include "PxrBump2Roughness.h"
+
+
+
+float linearstep(float min_clamp, float max_clamp, float in_put)
+{
+    float gain = 1.0/(max_clamp+min_clamp);
+    float y = (in_put-min_clamp)*gain;
+    y = clamp(y,0,1);
+    return y;
+}
+
+
+void singleTextureProjection(float W, point Q, float QNcomp, 
+                             int handedness, 
+                             string file_d1, string file_d2,
+                             float rot, float freq,
+                             float filtWidth, float gain, float bnGain,
+                             output Struct_Eigen2D TotalBumpRough,
+                             output normal bump_normal,
+                             output float heightMap)
+{
+    /* --apply per face transforms-- */
+    point Q0 = rotate(Q,radians(rot),point(0,0,0),point(0,0,1)) * freq;
+    
+    /* Read texture using Q0, as is done in MultiTexture. */
+    float texU = Q0[0];
+    float texV = 1-Q0[1];
+
+    color _d1 = color(0);
+    color _d2 = color(0);
+    if (file_d1 != "") {
+        _d1 = W * texture(
+            file_d1, texU, texV, "width", filtWidth, "wrap", "periodic");        
+    }
+    if(file_d2 != "") {
+        _d2 = W * texture(
+            file_d2, texU, texV, "width", filtWidth, "wrap", "periodic");
+    }
+    
+    /* Other surface calculations (normal, deriv, etc) are done with the handedness correction. */
+    float ss = texU;
+    float tt = texV;
+    if (handedness == 1) {
+        ss = Q0[1];
+        tt = 1-Q0[0];
+    }
+    
+    /* --------Normal Mapping--------- */
+    vector pQps, pQpt; 
+    partialDeriv(P, ss, tt, pQps, pQpt);                //Construct Q-Space
+    vector NQ = cross(pQps,pQpt);
+
+    vector _Nm = vector(-gain*bnGain*.5*_d1[0], -gain*bnGain*.5*_d1[1], 1);         //Normal map in tangent space;
+    if (QNcomp>0) _Nm[2]=-_Nm[2];                                                   //Triplanar projection has left and right-handed projections
+    
+    _Nm = normalize(pQps)*_Nm[0]
+        + normalize(pQpt)*_Nm[1]
+        + normalize(NQ)*_Nm[2];        //project into Q space;
+    bump_normal += W*normal(normalize(_Nm));
+
+    /* --------Height Map--------- */
+    heightMap += _d1[2];
+
+    /* --------Leadr Mapping--------- */
+    float _l1=0; float _l2=0;                           //Eigen Space
+    vector _v1 = vector(0); vector _v2 = vector(0);
+
+    bumpRoughMapping(_d1, _d2, _l1, _l2, _v1, _v2);
+
+    float W_variance = pow(W,1/2.8284);
+    _l1 = W_variance*_l1;
+    _l2 = W_variance*_l2;
+
+    pQps = normalize(pQps);
+    pQpt = normalize(pQpt);
+    
+    vector _pQpu, _pQpv;
+    if(handedness==1){
+        _pQpu = normalize(pQps*_v1[1]+pQpt*_v1[0]);
+        _pQpv = normalize(pQps*_v2[1]+pQpt*_v2[0]);
+    } else {
+        _pQpu = normalize(pQps*_v1[0]+pQpt*_v1[1]);
+        _pQpv = normalize(pQps*_v2[0]+pQpt*_v2[1]);
+    }        
+    
+    Struct_Eigen2D ThisBumpRough = {_l1, _l2, _pQpu, _pQpv};
+    combineEigens2D(TotalBumpRough, ThisBumpRough, TotalBumpRough);
+}
+
+
+shader PxrTriplanarBump2Roughness
+[[
+    string help = "A BumpRoughness osl using tri-planer projection. See http://graphics.pixar.com/library/BumpRoughness/index.html for details.",
+    string category="generator",
+    string primvars = "st"
+]]
+(
+
+    Manifold inputManifold = { point(0,0,0), normal(0,0,1), 0.0 }
+    [[
+        string page="",
+        string tag="struct",
+        string widget="null",
+        string widget="null"
+    ]],
+
+    /************************************************************/
+    /*                GLOBAL PARAMETERS                         */
+    /************************************************************/    
+
+    float gain = 1
+    [[
+        string label= "Bump Roughness Mult",
+        string help = "Bump map features are filtered out as these features get smaller on screen. By reading two pre-computed derivative maps, this node converts these filtered-out value of a bump map into a normal map, a roughness map and an anisotropy map. The user can adjust the bump roughness value up or down with this multiplier.",
+        string slider="True", float slidermin=0.0, float slidermax=10.0,
+    ]],
+
+    float bumpNormalGain = 1
+    [[
+        string label= "Bump Normal Mult",
+        string help = "Bump map features are filtered out as these features get smaller on screen. By reading two pre-computed derivative maps, this node converts these filtered-out value of a bump map into a normal map, a roughness map and an anisotropy map. The user can increase or decrease the slope of the normal maps by using this multiplier.",
+        string slider="True", float slidermin=0.0, float slidermax=2.0, 
+    ]],
+
+    float anisotropyGain = 1
+    [[
+        string label= "Anisotropy Mult",
+        string help = "Bump map features are filtered out as these features get smaller on screen. By reading two pre-computed derivative maps, this node converts these filtered-out value of a bump map into a normal map, a roughness map and an anisotropy map. The user can adjust the anisotropy amount up or down with this multiplier. This is not a linear operator, so use caution.",
+        string slider="True", float slidermin=0.0, float slidermax=3.0,
+    ]],
+
+    float featherNormal = 80
+    [[
+        string label= "Feather Normal",
+        string help = "When you purturb surface normals with normal maps, it can fall below the horizon, this is the degree at which the incoming surface normal will be mixed in to fix it.",
+        string slider="True", float slidermin=60, float slidermax=90,
+    ]],
+    
+    float baseRoughness = 0.001 [[
+        string label= "Base Roughness",
+        string help = "This is the roughness of a micro-facet at a single texel level of the input textures. It is combined with the bump roughness, similar to an add.",
+        string slider="True", float slidermin=0.0, float slidermax=1.0,
+    ]],
+    
+    /************************************************************/
+    /*                MULTI-TEXTURE                             */
+    /************************************************************/    
+    string fileA_d1 = ""
+    [[
+        string page="Texture", 
+        string label="Deriv1 File",
+        int connectable=0,
+        string widget="fileInput", 
+        string options="texture",
+    ]],
+
+    string fileA_d2 = ""
+    [[
+        string page="Texture", 
+        string label="Deriv2 File",
+        int connectable=0,
+        string widget="fileInput", 
+        string options="texture",
+    ]],
+
+    float freqA = 1
+    [[
+        string page = "Texture", string label = "Frequency", string help = "",
+        int slider = 1, float slidermin = 0.0, float slidermax = 1.0
+    ]],
+    
+    int multiAxisRotate = 0 [[
+        string page="Texture", 
+        string widget="checkBox", int connectable=0,
+        string help = "Rotate different amounts on each axis of projection.",
+    ]],
+    
+    float rotateA = 0 [[ 
+        string page="Texture", 
+        string label="Rotate", 
+        string slider="True", float slidermin=-180, float slidermax=180,
+        string conditionalVisOp="equalTo",
+        string conditionalVisPath="../multiAxisRotate",
+        string conditionalVisValue="0",
+
+        string help = "Global rotate for texture A on all axes",
+        int connectable=0,
+    ]],
+    float rotateA_X = 0 [[ 
+        string page="Texture", 
+        string label="Rotate X",
+        string slider="True", float slidermin=-180, float slidermax=180,
+        string conditionalVisOp="equalTo",
+        string conditionalVisPath="../multiAxisRotate",
+        string conditionalVisValue="1",
+        string help = "Rotate amount on X axis.",
+        int connectable=0,
+    ]],
+    float rotateA_Y = 0 [[ 
+        string page="Texture", 
+        string label="Rotate Y",
+        string slider="True", float slidermin=-180, float slidermax=180,
+        string conditionalVisOp="equalTo",
+        string conditionalVisPath="../multiAxisRotate",
+        string conditionalVisValue="1",
+        string help = "Rotate amount on Y axis.",
+        int connectable=0,
+    ]],
+    float rotateA_Z = 0 [[ 
+        string page="Texture", 
+        string label="Rotate Z",
+        string slider="True", float slidermin=-180, float slidermax=180,
+        string conditionalVisOp="equalTo",
+        string conditionalVisPath="../multiAxisRotate",
+        string conditionalVisValue="1",
+        string help = "Rotate amount on Z axis.",
+        int connectable=0,
+    ]],
+    
+    float filtWidth = 0.5
+    [[
+        string page = "Texture", string label = "Filter Width Mult", string help = "",
+        int slider = 1, float slidermin = 0.1, float slidermax = 1.0
+    ]],
+
+
+
+    output Struct_Eigen2D resultBumpRough =
+        { 0, 0, vector(1,0,0), vector(0,1,0), vector(0,0,1)} [[
+        string widget = "null"
+    ]],
+    
+    output normal resultBumpNormal = normal(0) [[
+        string widget = "null"
+    ]],
+
+    output float resultRoughness = 0 [[
+        string widget = "null"
+    ]],
+
+    output float resultAnisotropy = 0 [[
+        string widget = "null"
+    ]],
+    
+    output vector resultAnisotropyDirection = vector(0) [[
+        string widget = "null"
+    ]],
+
+    output float resultHeightMap = 0 [[
+        string widget = "null"
+    ]],
+    
+#ifdef PIXAR_ANIM
+    output float debugRoughnessU = 0 [[
+        string widget = "null"
+    ]],
+    
+    output float debugRoughnessV = 0 [[
+        string widget = "null"
+    ]],
+    
+    output vector debugRoughDirU = vector(0) [[
+        string widget = "null"
+    ]],
+    
+    output vector debugRoughDirV = vector(0) [[
+        string widget = "null"
+    ]],
+
+    output vector debugDNormalDx = vector(0) [[
+        string widget = "null"
+    ]],
+#endif
+
+)
+{
+
+
+
+    Manifold inputManifoldRw;
+    if (!isconnected(inputManifold)) {
+        Manifold_Construct(P,N,inputManifoldRw);
+        Manifold_Transform(inputManifoldRw,"object");
+    } else {
+        Manifold_Copy(inputManifold,inputManifoldRw);
+    }
+    
+    point Q = inputManifoldRw.Q;
+    normal QN = normalize(inputManifoldRw.QN);
+
+    /* Set Up TriPlaner Projection */
+
+    point Q0, Q1, Q2;    //the ST coordinates of each projection
+    float W0, W1, W2;    //the weight of each projection
+
+    /*inlining a version of the the RC projection*/
+
+    //Get weights by extracting pojection component, square this for smoothness and for abs()
+    W0 = linearstep(0.15, 0.7, QN[0]*QN[0]);
+    W1 = linearstep(0.15, 0.7, QN[1]*QN[1]);
+    W2 = linearstep(0.15, 0.7, QN[2]*QN[2]);
+
+    //Normalize the weights so they add up to 1
+    float nLen = W0 + W1 + W2;
+    W0 = clamp(W0 / nLen, 0, 1);
+    W1 = clamp(W1 / nLen, 0, 1);
+    W2 = clamp(W2 / nLen, 0, 1);
+    
+    /* Setup Projections Note:
+       Q1 follows the convention of MultiTexture but is technically wrong for MultiTextureBumpRough
+       because its handedness is reversed from Q0 and Q2, which messes up the normal calculation.
+       Swapping Q[0] and Q[2] would fix the handedness, but then the texture projection will be
+       perpendicular from what we expect in MultiTexture. To counter this, we instead pass a 
+       "handedness" flag to singleTextureProjection and deal with it there instead.
+    */
+
+    Q0 = point(Q[1], Q[2], 0); // handedness = 0 (right)
+    Q1 = point(Q[0], Q[2], 0); // handedness = 1 (left)
+    Q2 = point(Q[0], Q[1], 0); // handedness = 0 (right)
+
+    float Variance_U=0; float Variance_V=0;
+
+    /************************************************************/
+    /*          If the Weight is not 0, read texture            */
+    /************************************************************/
+    float rot = rotateA;
+    Struct_Eigen2D resultEigen2D = {0.0, 0.0, vector(1,0,0), vector(0,1,1)};
+
+    if (W0 > 0) {
+        if (multiAxisRotate) rot = rotateA_X;
+        singleTextureProjection(W0, Q0, QN[0], 0, fileA_d1, fileA_d2, rot, freqA, filtWidth, gain, bumpNormalGain,
+                     resultEigen2D,
+                     resultBumpNormal,
+                     resultHeightMap);
+    } if (W1 > 0) {
+        if (multiAxisRotate) rot = rotateA_Y;
+        singleTextureProjection(W1, Q1, QN[1], 1, fileA_d1, fileA_d2, rot, freqA, filtWidth, gain, bumpNormalGain,
+                     resultEigen2D,
+                     resultBumpNormal,
+                     resultHeightMap);
+    } if (W2 > 0) {
+        if (multiAxisRotate) rot = rotateA_Z;
+        singleTextureProjection(W2, Q2, QN[2], 0, fileA_d1, fileA_d2, rot, freqA, filtWidth, gain, bumpNormalGain,
+                     resultEigen2D,
+                     resultBumpNormal,
+                     resultHeightMap);
+    }
+
+    float var_gain = gain*gain;
+    float var_br = baseRoughness*baseRoughness;
+    
+    resultEigen2D.l1 = var_gain*resultEigen2D.l1+var_br;
+    resultEigen2D.l2 = var_gain*resultEigen2D.l2+var_br;
+    
+    resultBumpNormal = normalize(-resultBumpNormal);
+
+    float theta = degrees(acos(dot(normalize(N), resultBumpNormal)));
+    resultBumpNormal = mix(resultBumpNormal, normalize(N), linearstep(featherNormal/90, 1, theta/90));
+
+    resultBumpNormal = normalize(resultBumpNormal);
+    resultBumpRough.bumpnorm = resultBumpNormal;
+    
+    float resultRoughnessU = sqrt(resultEigen2D.l1);
+    float resultRoughnessV = sqrt(resultEigen2D.l2);
+    
+    float rudivrv = resultRoughnessU/resultRoughnessV;
+    resultAnisotropy = (rudivrv-1.)/(rudivrv+1.);
+    
+    if (anisotropyGain != 1.0){
+        resultAnisotropy = clamp(resultAnisotropy*anisotropyGain, 
+                                 0.0, 1.0);
+
+        float _alpha = 1.0/(resultAnisotropy*resultAnisotropy-
+                            2.0*resultAnisotropy+2.0);
+
+        float variance = resultEigen2D.l1+resultEigen2D.l2;
+        resultEigen2D.l1 = variance * _alpha;
+        resultEigen2D.l2 = variance *(1.0-_alpha);
+        
+        resultRoughnessU = sqrt(resultEigen2D.l1);
+        resultRoughnessV = sqrt(resultEigen2D.l2);
+    }
+    
+    resultBumpRough.l1 = resultEigen2D.l1;
+    resultBumpRough.l2 = resultEigen2D.l2;
+    resultBumpRough.v1 = resultEigen2D.v1;
+    resultBumpRough.v2 = resultEigen2D.v2;
+
+    resultRoughness = resultRoughnessU/(1+resultAnisotropy);
+    resultAnisotropyDirection = resultEigen2D.v1;
+    
+    
+#ifdef PIXAR_ANIM
+    debugRoughnessU = sqrt(resultEigen2D.l1);
+    debugRoughnessV = sqrt(resultEigen2D.l2);    
+    
+    debugRoughDirU = resultEigen2D.v1;
+    debugRoughDirV = resultEigen2D.v2;
+    debugDNormalDx = Dx(resultBumpNormal);
+#endif
+
+}
