@@ -32,9 +32,6 @@
 
 
 shader PxrBump2RoughnessMake
-[[
-    string category="modifier",
-]]
 (
     float inputHeight = (0.)
     [[
@@ -57,26 +54,11 @@ shader PxrBump2RoughnessMake
     ]],
     
     
-    output float resultHeightMap = float(0.)
-    [[
-            string widget = "null",
-    ]],
-    output normal resultBumpNormal = normal(0.)
-    [[
-            string widget = "null",
-    ]],    
-    output color resultNormalMap = color(0.)
-    [[
-            string widget = "null",
-    ]],
-    output color resultD1 = color(0.)
-    [[
-            string widget = "null",
-    ]],
+    output float resultHeightMap = float(0.),
+    output normal resultBumpNormal = normal(0.),
+    output color resultNormalMap = color(0.),
+    output color resultD1 = color(0.),
     output color resultD2 = color(0.)
-    [[
-            string widget = "null",
-    ]]
 )
 {
         
@@ -120,7 +102,7 @@ shader PxrBump2RoughnessMake
     float dsdn = -ss/nn; //slope along s
     float dtdn = -tt/nn; //slopt along t
     
-    resultD1= color(dsdn, dtdn, resultHeightMap);
-    resultD2= color(dsdn*dsdn, dtdn*dtdn, dsdn*dtdn);
+    resultD1 = color(dsdn, dtdn, resultHeightMap);
+    resultD2 = color(dsdn*dsdn, dtdn*dtdn, dsdn*dtdn);
     
 }

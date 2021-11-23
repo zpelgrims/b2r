@@ -1,25 +1,25 @@
 OpenShadingLanguage 1.00
-# Compiled by oslc 1.11.0dev
-# options: 
-shader PxrBump2RoughnessMake	%meta{string,category,"modifier"} 
+# Compiled by oslc 1.12.0
+# options: -o dist/PxrBump2RoughnessMake.oso
+shader PxrBump2RoughnessMake
 param	float	inputHeight	0		%meta{string,help,"The input height to bump rough"}  %read{2,2} %write{2147483647,-1} %derivs
 param	float	inputHeightMult	0		%meta{string,help,"Multiplier on to the height input"}  %read{4,4} %write{2147483647,-1} %derivs
 param	float	inputManifoldS	0		%meta{string,help,"The input s Parameterization"}  %read{10,58} %write{2147483647,-1} %derivs
 param	float	inputManifoldT	0		%meta{string,help,"The input t Parameterization"}  %read{11,59} %write{2147483647,-1} %derivs
-oparam	float	resultHeightMap	0		%meta{string,widget,"null"}  %read{69,69} %write{0,62} %initexpr
-oparam	normal	resultBumpNormal	0 0 0		%meta{string,widget,"null"}  %read{2147483647,-1} %write{63,63}
-oparam	color	resultNormalMap	0 0 0		%meta{string,widget,"null"}  %read{2147483647,-1} %write{64,64}
-oparam	color	resultD1	0 0 0		%meta{string,widget,"null"}  %read{2147483647,-1} %write{69,69}
-oparam	color	resultD2	0 0 0		%meta{string,widget,"null"}  %read{2147483647,-1} %write{73,73}
+oparam	float	resultHeightMap	0		%read{69,69} %write{0,62} %initexpr
+oparam	normal	resultBumpNormal	0 0 0		%read{2147483647,-1} %write{63,63}
+oparam	color	resultNormalMap	0 0 0		%read{2147483647,-1} %write{64,64}
+oparam	color	resultD1	0 0 0		%read{2147483647,-1} %write{69,69}
+oparam	color	resultD2	0 0 0		%read{2147483647,-1} %write{73,73}
 global	point	P	%read{6,32} %write{2147483647,-1} %derivs
 global	normal	N	%read{1,53} %write{2147483647,-1} %derivs
-local	vector	___332_dQdx	%read{18,46} %write{8,31}
-local	vector	___332_dQdy	%read{19,45} %write{9,32}
-local	float	___332_A	%read{14,45} %write{10,33}
-local	float	___332_B	%read{15,42} %write{11,34}
-local	float	___332_C	%read{15,46} %write{12,35}
-local	float	___332_D	%read{14,41} %write{13,36}
-local	float	___332_invdet	%read{21,48} %write{17,40}
+local	vector	___337_dQdx	%read{18,46} %write{8,31}
+local	vector	___337_dQdy	%read{19,45} %write{9,32}
+local	float	___337_A	%read{14,45} %write{10,33}
+local	float	___337_B	%read{15,42} %write{11,34}
+local	float	___337_C	%read{15,46} %write{12,35}
+local	float	___337_D	%read{14,41} %write{13,36}
+local	float	___337_invdet	%read{21,48} %write{17,40}
 local	vector	dQds	%read{26,28} %write{21,26}
 local	vector	dQdt	%read{27,28} %write{25,27}
 local	vector	Nn	%read{5,5} %write{1,1} %derivs
@@ -61,175 +61,175 @@ temp	vector	$tmp20	%read{47,47} %write{45,45}
 temp	vector	$tmp21	%read{47,47} %write{46,46}
 temp	vector	$tmp22	%read{48,48} %write{47,47}
 temp	normal	$tmp23	%read{54,54} %write{53,53}
-const	int	$const6	0		%read{55,55} %write{2147483647,-1}
+const	int	$const5	0		%read{55,55} %write{2147483647,-1}
 temp	int	$tmp24	%read{56,56} %write{55,55}
 temp	float	$tmp25	%read{60,60} %write{58,58}
 temp	float	$tmp26	%read{60,60} %write{59,59}
-const	float	$const7	3.14159274		%read{61,61} %write{2147483647,-1}
+const	float	$const6	3.14159274		%read{61,61} %write{2147483647,-1}
 temp	float	$tmp27	%read{66,66} %write{65,65}
 temp	float	$tmp28	%read{68,68} %write{67,67}
 temp	float	$tmp29	%read{73,73} %write{70,70}
 temp	float	$tmp30	%read{73,73} %write{71,71}
 temp	float	$tmp31	%read{73,73} %write{72,72}
 code resultHeightMap
-# PxrBump2RoughnessMake.osl:60
-#     output float resultHeightMap = float(0.)
-	assign		resultHeightMap $const1 	%filename{"PxrBump2RoughnessMake.osl"} %line{60} %argrw{"wr"}
+# src/PxrBump2RoughnessMake.osl:57
+#     output float resultHeightMap = float(0.),
+	assign		resultHeightMap $const1 	%filename{"src/PxrBump2RoughnessMake.osl"} %line{57} %argrw{"wr"}
 code ___main___
-# PxrBump2RoughnessMake.osl:84
+# src/PxrBump2RoughnessMake.osl:66
 #     vector Nn = normalize(N);
-	normalize	Nn N 	%filename{"PxrBump2RoughnessMake.osl"} %line{84} %argrw{"wr"}
-# PxrBump2RoughnessMake.osl:85
+	normalize	Nn N 	%filename{"src/PxrBump2RoughnessMake.osl"} %line{66} %argrw{"wr"}
+# src/PxrBump2RoughnessMake.osl:67
 #     float finalHeight = inputHeightMult*(inputHeight*2.0-1.0);
-	mul		$tmp1 inputHeight $const2 	%line{85} %argrw{"wrr"}
+	mul		$tmp1 inputHeight $const2 	%line{67} %argrw{"wrr"}
 	sub		$tmp2 $tmp1 $const3 	%argrw{"wrr"}
 	mul		finalHeight inputHeightMult $tmp2 	%argrw{"wrr"}
-# PxrBump2RoughnessMake.osl:86
+# src/PxrBump2RoughnessMake.osl:68
 #     vector Pbump = P+finalHeight*Nn;
-	mul		$tmp3 finalHeight Nn 	%line{86} %argrw{"wrr"}
+	mul		$tmp3 finalHeight Nn 	%line{68} %argrw{"wrr"}
 	add		Pbump P $tmp3 	%argrw{"wrr"}
-# PxrBump2RoughnessMake.osl:88
+# src/PxrBump2RoughnessMake.osl:70
 #     partialDeriv(Pbump, inputManifoldS, inputManifoldT, dQds, dQdt);
-	functioncall	$const4 26 	%line{88} %argrw{"r"}
-# PxrBump2Roughness.h:49
+	functioncall	$const4 26 	%line{70} %argrw{"r"}
+# src/PxrBump2Roughness.h:58
 #     vector dQdx = Dx(Q);
-	Dx		___332_dQdx Pbump 	%filename{"PxrBump2Roughness.h"} %line{49} %argrw{"wr"} %argderivs{1}
-# PxrBump2Roughness.h:50
+	Dx		___337_dQdx Pbump 	%filename{"src/PxrBump2Roughness.h"} %line{58} %argrw{"wr"} %argderivs{1}
+# src/PxrBump2Roughness.h:59
 #     vector dQdy = Dy(Q);
-	Dy		___332_dQdy Pbump 	%line{50} %argrw{"wr"} %argderivs{1}
-# PxrBump2Roughness.h:52
+	Dy		___337_dQdy Pbump 	%line{59} %argrw{"wr"} %argderivs{1}
+# src/PxrBump2Roughness.h:61
 #     float A = Dx(a);
-	Dx		___332_A inputManifoldS 	%line{52} %argrw{"wr"} %argderivs{1}
-# PxrBump2Roughness.h:53
+	Dx		___337_A inputManifoldS 	%line{61} %argrw{"wr"} %argderivs{1}
+# src/PxrBump2Roughness.h:62
 #     float B = Dx(b);
-	Dx		___332_B inputManifoldT 	%line{53} %argrw{"wr"} %argderivs{1}
-# PxrBump2Roughness.h:54
+	Dx		___337_B inputManifoldT 	%line{62} %argrw{"wr"} %argderivs{1}
+# src/PxrBump2Roughness.h:63
 #     float C = Dy(a);
-	Dy		___332_C inputManifoldS 	%line{54} %argrw{"wr"} %argderivs{1}
-# PxrBump2Roughness.h:55
+	Dy		___337_C inputManifoldS 	%line{63} %argrw{"wr"} %argderivs{1}
+# src/PxrBump2Roughness.h:64
 #     float D = Dy(b);
-	Dy		___332_D inputManifoldT 	%line{55} %argrw{"wr"} %argderivs{1}
-# PxrBump2Roughness.h:57
-#     float invdet = 1/(A*D - B*C);
-	mul		$tmp4 ___332_A ___332_D 	%line{57} %argrw{"wrr"}
-	mul		$tmp5 ___332_B ___332_C 	%argrw{"wrr"}
+	Dy		___337_D inputManifoldT 	%line{64} %argrw{"wr"} %argderivs{1}
+# src/PxrBump2Roughness.h:66
+#     float invdet = 1.0/(A*D - B*C);
+	mul		$tmp4 ___337_A ___337_D 	%line{66} %argrw{"wrr"}
+	mul		$tmp5 ___337_B ___337_C 	%argrw{"wrr"}
 	sub		$tmp6 $tmp4 $tmp5 	%argrw{"wrr"}
-	div		___332_invdet $const3 $tmp6 	%argrw{"wrr"}
-# PxrBump2Roughness.h:59
+	div		___337_invdet $const3 $tmp6 	%argrw{"wrr"}
+# src/PxrBump2Roughness.h:68
 #     dQda = (dQdx*D-dQdy*B)*invdet;
-	mul		$tmp7 ___332_dQdx ___332_D 	%line{59} %argrw{"wrr"}
-	mul		$tmp8 ___332_dQdy ___332_B 	%argrw{"wrr"}
+	mul		$tmp7 ___337_dQdx ___337_D 	%line{68} %argrw{"wrr"}
+	mul		$tmp8 ___337_dQdy ___337_B 	%argrw{"wrr"}
 	sub		$tmp9 $tmp7 $tmp8 	%argrw{"wrr"}
-	mul		dQds $tmp9 ___332_invdet 	%argrw{"wrr"}
-# PxrBump2Roughness.h:60
+	mul		dQds $tmp9 ___337_invdet 	%argrw{"wrr"}
+# src/PxrBump2Roughness.h:69
 #     dQdb = (dQdy*A-dQdx*C)*invdet;
-	mul		$tmp10 ___332_dQdy ___332_A 	%line{60} %argrw{"wrr"}
-	mul		$tmp11 ___332_dQdx ___332_C 	%argrw{"wrr"}
+	mul		$tmp10 ___337_dQdy ___337_A 	%line{69} %argrw{"wrr"}
+	mul		$tmp11 ___337_dQdx ___337_C 	%argrw{"wrr"}
 	sub		$tmp12 $tmp10 $tmp11 	%argrw{"wrr"}
-	mul		dQdt $tmp12 ___332_invdet 	%argrw{"wrr"}
-# PxrBump2RoughnessMake.osl:89
+	mul		dQdt $tmp12 ___337_invdet 	%argrw{"wrr"}
+# src/PxrBump2RoughnessMake.osl:71
 #     dQds = normalize(dQds);
-	normalize	dQds dQds 	%filename{"PxrBump2RoughnessMake.osl"} %line{89} %argrw{"wr"}
-# PxrBump2RoughnessMake.osl:90
+	normalize	dQds dQds 	%filename{"src/PxrBump2RoughnessMake.osl"} %line{71} %argrw{"wr"}
+# src/PxrBump2RoughnessMake.osl:72
 #     dQdt = normalize(dQdt);
-	normalize	dQdt dQdt 	%line{90} %argrw{"wr"}
-# PxrBump2RoughnessMake.osl:93
+	normalize	dQdt dQdt 	%line{72} %argrw{"wr"}
+# src/PxrBump2RoughnessMake.osl:75
 #     vector Nbump = normalize(cross(dQds, dQdt));
-	cross		$tmp13 dQds dQdt 	%line{93} %argrw{"wrr"}
+	cross		$tmp13 dQds dQdt 	%line{75} %argrw{"wrr"}
 	normalize	Nbump $tmp13 	%argrw{"wr"}
-# PxrBump2RoughnessMake.osl:98
+# src/PxrBump2RoughnessMake.osl:80
 #     partialDeriv(P, inputManifoldS, inputManifoldT, dPds, dPdt);
-	functioncall	$const4 49 	%line{98} %argrw{"r"}
-# PxrBump2Roughness.h:49
+	functioncall	$const4 49 	%line{80} %argrw{"r"}
+# src/PxrBump2Roughness.h:58
 #     vector dQdx = Dx(Q);
-	Dx		___332_dQdx P 	%filename{"PxrBump2Roughness.h"} %line{49} %argrw{"wr"} %argderivs{1}
-# PxrBump2Roughness.h:50
+	Dx		___337_dQdx P 	%filename{"src/PxrBump2Roughness.h"} %line{58} %argrw{"wr"} %argderivs{1}
+# src/PxrBump2Roughness.h:59
 #     vector dQdy = Dy(Q);
-	Dy		___332_dQdy P 	%line{50} %argrw{"wr"} %argderivs{1}
-# PxrBump2Roughness.h:52
+	Dy		___337_dQdy P 	%line{59} %argrw{"wr"} %argderivs{1}
+# src/PxrBump2Roughness.h:61
 #     float A = Dx(a);
-	Dx		___332_A inputManifoldS 	%line{52} %argrw{"wr"} %argderivs{1}
-# PxrBump2Roughness.h:53
+	Dx		___337_A inputManifoldS 	%line{61} %argrw{"wr"} %argderivs{1}
+# src/PxrBump2Roughness.h:62
 #     float B = Dx(b);
-	Dx		___332_B inputManifoldT 	%line{53} %argrw{"wr"} %argderivs{1}
-# PxrBump2Roughness.h:54
+	Dx		___337_B inputManifoldT 	%line{62} %argrw{"wr"} %argderivs{1}
+# src/PxrBump2Roughness.h:63
 #     float C = Dy(a);
-	Dy		___332_C inputManifoldS 	%line{54} %argrw{"wr"} %argderivs{1}
-# PxrBump2Roughness.h:55
+	Dy		___337_C inputManifoldS 	%line{63} %argrw{"wr"} %argderivs{1}
+# src/PxrBump2Roughness.h:64
 #     float D = Dy(b);
-	Dy		___332_D inputManifoldT 	%line{55} %argrw{"wr"} %argderivs{1}
-# PxrBump2Roughness.h:57
-#     float invdet = 1/(A*D - B*C);
-	mul		$tmp14 ___332_A ___332_D 	%line{57} %argrw{"wrr"}
-	mul		$tmp15 ___332_B ___332_C 	%argrw{"wrr"}
+	Dy		___337_D inputManifoldT 	%line{64} %argrw{"wr"} %argderivs{1}
+# src/PxrBump2Roughness.h:66
+#     float invdet = 1.0/(A*D - B*C);
+	mul		$tmp14 ___337_A ___337_D 	%line{66} %argrw{"wrr"}
+	mul		$tmp15 ___337_B ___337_C 	%argrw{"wrr"}
 	sub		$tmp16 $tmp14 $tmp15 	%argrw{"wrr"}
-	div		___332_invdet $const3 $tmp16 	%argrw{"wrr"}
-# PxrBump2Roughness.h:59
+	div		___337_invdet $const3 $tmp16 	%argrw{"wrr"}
+# src/PxrBump2Roughness.h:68
 #     dQda = (dQdx*D-dQdy*B)*invdet;
-	mul		$tmp17 ___332_dQdx ___332_D 	%line{59} %argrw{"wrr"}
-	mul		$tmp18 ___332_dQdy ___332_B 	%argrw{"wrr"}
+	mul		$tmp17 ___337_dQdx ___337_D 	%line{68} %argrw{"wrr"}
+	mul		$tmp18 ___337_dQdy ___337_B 	%argrw{"wrr"}
 	sub		$tmp19 $tmp17 $tmp18 	%argrw{"wrr"}
-	mul		dPds $tmp19 ___332_invdet 	%argrw{"wrr"}
-# PxrBump2Roughness.h:60
+	mul		dPds $tmp19 ___337_invdet 	%argrw{"wrr"}
+# src/PxrBump2Roughness.h:69
 #     dQdb = (dQdy*A-dQdx*C)*invdet;
-	mul		$tmp20 ___332_dQdy ___332_A 	%line{60} %argrw{"wrr"}
-	mul		$tmp21 ___332_dQdx ___332_C 	%argrw{"wrr"}
+	mul		$tmp20 ___337_dQdy ___337_A 	%line{69} %argrw{"wrr"}
+	mul		$tmp21 ___337_dQdx ___337_C 	%argrw{"wrr"}
 	sub		$tmp22 $tmp20 $tmp21 	%argrw{"wrr"}
-	mul		dPdt $tmp22 ___332_invdet 	%argrw{"wrr"}
-# PxrBump2RoughnessMake.osl:99
+	mul		dPdt $tmp22 ___337_invdet 	%argrw{"wrr"}
+# src/PxrBump2RoughnessMake.osl:81
 #     dPds = normalize(dPds);
-	normalize	dPds dPds 	%filename{"PxrBump2RoughnessMake.osl"} %line{99} %argrw{"wr"}
-# PxrBump2RoughnessMake.osl:100
+	normalize	dPds dPds 	%filename{"src/PxrBump2RoughnessMake.osl"} %line{81} %argrw{"wr"}
+# src/PxrBump2RoughnessMake.osl:82
 #     dPdt = normalize(dPdt);
-	normalize	dPdt dPdt 	%line{100} %argrw{"wr"}
-# PxrBump2RoughnessMake.osl:102
+	normalize	dPdt dPdt 	%line{82} %argrw{"wr"}
+# src/PxrBump2RoughnessMake.osl:84
 #     float ss = dot(Nbump, dPds);
-	dot		ss Nbump dPds 	%line{102} %argrw{"wrr"}
-# PxrBump2RoughnessMake.osl:103
+	dot		ss Nbump dPds 	%line{84} %argrw{"wrr"}
+# src/PxrBump2RoughnessMake.osl:85
 #     float tt = dot(Nbump, dPdt);
-	dot		tt Nbump dPdt 	%line{103} %argrw{"wrr"}
-# PxrBump2RoughnessMake.osl:104
+	dot		tt Nbump dPdt 	%line{85} %argrw{"wrr"}
+# src/PxrBump2RoughnessMake.osl:86
 #     float nn = dot(Nbump, normalize(N));
-	normalize	$tmp23 N 	%line{104} %argrw{"wr"}
+	normalize	$tmp23 N 	%line{86} %argrw{"wr"}
 	dot		nn Nbump $tmp23 	%argrw{"wrr"}
-# PxrBump2RoughnessMake.osl:106
+# src/PxrBump2RoughnessMake.osl:88
 #     if (nn < 0){
-	lt		$tmp24 nn $const6 	%line{106} %argrw{"wrr"}
+	lt		$tmp24 nn $const5 	%line{88} %argrw{"wrr"}
 	if		$tmp24 58 58 	%argrw{"r"}
-# PxrBump2RoughnessMake.osl:109
+# src/PxrBump2RoughnessMake.osl:91
 #         Nbump = -Nbump;
-	neg		Nbump Nbump 	%line{109} %argrw{"wr"}
-# PxrBump2RoughnessMake.osl:112
+	neg		Nbump Nbump 	%line{91} %argrw{"wr"}
+# src/PxrBump2RoughnessMake.osl:94
 #     float d = filterwidth(inputManifoldS)*filterwidth(inputManifoldT);
-	filterwidth	$tmp25 inputManifoldS 	%line{112} %argrw{"wr"} %argderivs{1}
+	filterwidth	$tmp25 inputManifoldS 	%line{94} %argrw{"wr"} %argderivs{1}
 	filterwidth	$tmp26 inputManifoldT 	%argrw{"wr"} %argderivs{1}
 	mul		d $tmp25 $tmp26 	%argrw{"wrr"}
-# PxrBump2RoughnessMake.osl:113
+# src/PxrBump2RoughnessMake.osl:95
 #     d = d*M_PI;
-	mul		d d $const7 	%line{113} %argrw{"wrr"}
-# PxrBump2RoughnessMake.osl:116
+	mul		d d $const6 	%line{95} %argrw{"wrr"}
+# src/PxrBump2RoughnessMake.osl:98
 #     resultHeightMap = finalHeight;
-	assign		resultHeightMap finalHeight 	%line{116} %argrw{"wr"}
-# PxrBump2RoughnessMake.osl:117
+	assign		resultHeightMap finalHeight 	%line{98} %argrw{"wr"}
+# src/PxrBump2RoughnessMake.osl:99
 #     resultBumpNormal = Nbump;
-	assign		resultBumpNormal Nbump 	%line{117} %argrw{"wr"}
-# PxrBump2RoughnessMake.osl:118
+	assign		resultBumpNormal Nbump 	%line{99} %argrw{"wr"}
+# src/PxrBump2RoughnessMake.osl:100
 #     resultNormalMap = color(ss,tt,nn);
-	color		resultNormalMap ss tt nn 	%line{118} %argrw{"wrrr"}
-# PxrBump2RoughnessMake.osl:120
+	color		resultNormalMap ss tt nn 	%line{100} %argrw{"wrrr"}
+# src/PxrBump2RoughnessMake.osl:102
 #     float dsdn = -ss/nn; //slope along s
-	neg		$tmp27 ss 	%line{120} %argrw{"wr"}
+	neg		$tmp27 ss 	%line{102} %argrw{"wr"}
 	div		dsdn $tmp27 nn 	%argrw{"wrr"}
-# PxrBump2RoughnessMake.osl:121
+# src/PxrBump2RoughnessMake.osl:103
 #     float dtdn = -tt/nn; //slopt along t
-	neg		$tmp28 tt 	%line{121} %argrw{"wr"}
+	neg		$tmp28 tt 	%line{103} %argrw{"wr"}
 	div		dtdn $tmp28 nn 	%argrw{"wrr"}
-# PxrBump2RoughnessMake.osl:123
-#     resultD1= color(dsdn, dtdn, resultHeightMap);
-	color		resultD1 dsdn dtdn resultHeightMap 	%line{123} %argrw{"wrrr"}
-# PxrBump2RoughnessMake.osl:124
-#     resultD2= color(dsdn*dsdn, dtdn*dtdn, dsdn*dtdn);
-	mul		$tmp29 dsdn dsdn 	%line{124} %argrw{"wrr"}
+# src/PxrBump2RoughnessMake.osl:105
+#     resultD1 = color(dsdn, dtdn, resultHeightMap);
+	color		resultD1 dsdn dtdn resultHeightMap 	%line{105} %argrw{"wrrr"}
+# src/PxrBump2RoughnessMake.osl:106
+#     resultD2 = color(dsdn*dsdn, dtdn*dtdn, dsdn*dtdn);
+	mul		$tmp29 dsdn dsdn 	%line{106} %argrw{"wrr"}
 	mul		$tmp30 dtdn dtdn 	%argrw{"wrr"}
 	mul		$tmp31 dsdn dtdn 	%argrw{"wrr"}
 	color		resultD2 $tmp29 $tmp30 $tmp31 	%argrw{"wrrr"}

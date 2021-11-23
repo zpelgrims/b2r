@@ -45,14 +45,6 @@ vector projectToNormal(vector Norm, vector Vin)
 }
 
 shader PxrBump2RoughnessRead
-[[
-    string help = "BumpRoughness / LEADR mapping node, designed to create "\
-                  "aggregate roughness from bump maps.  See "\
-                  "http://graphics.pixar.com/library/BumpRoughness/index.html"\
-                  "for details. This node requires s,t parameterizations",
-    string category="displacement",
-    string primvars = "st"
-]]
 (
     int enable = 1 [[
         string widget="checkBox",
@@ -64,8 +56,8 @@ shader PxrBump2RoughnessRead
         string help = "This will invert Bump Normal",
     ]],
     
-    Manifold inputManifold = { point(0,0,0), normal(0,0,1), 0.0 }
-    [[ string page="", string tag="struct", string widget="null", string widget="null" ]],
+    // Manifold inputManifold = { point(0,0,0), normal(0,0,1), 0.0 }
+    // [[ string page="", string tag="struct", string widget="null", string widget="null" ]],
 
     float baseRoughness = 0.001 [[
         string help = "This is the roughness of a micro-facet at a single"\
@@ -84,10 +76,10 @@ shader PxrBump2RoughnessRead
         string help = "This is a multiplier to the aggregate anisotropy"
     ]],
 
-#ifdef PIXAR_ANIM
-    color input_d1 = color(0) [[ string widget="null" ]],
-    color input_d2 = color(0) [[ string widget="null" ]],
-#endif
+// #ifdef PIXAR_ANIM
+//     color input_d1 = color(0) [[ string widget="null" ]],
+//     color input_d2 = color(0) [[ string widget="null" ]],
+// #endif
 
     string filename_d1 = "" [[
         string widget= "assetIdInput",
@@ -95,198 +87,187 @@ shader PxrBump2RoughnessRead
         int    constant = 1,
         string context = "image context",
         int    connectable = 0,
-        string help = "Ignored if Deriv1 comes from a connection. This expects the "\
-                      "first derivative map, let H be a height field, then each "\
-                      "channel are defined as r=dH/du, g=dH/dv, b=dontcare",
+        string help = "This expects the "\
+                      "two derivative maps, constructed by the --bumpslopes maketx option. See the maketx manual for more information.",
     ]],
 
-    string filename_d2 = "" [[
-        string widget= "assetIdInput",
-        string fileTypes="tex",
-        int    constant = 1,
-        string context = "image context",
-        int    connectable = 0,
-        string help = "Ignored if Deriv2 comes from a connection. This expects the "\
-                      "first derivative squared map, let H be a height field, then "\
-                      "each channel are defined as r=(dH/du)^2, g=(dH/dv)^2, "\
-                      "b=dH/du*dH/dv",
-    ]],
+    // string filename_d2 = "" [[
+    //     string widget= "assetIdInput",
+    //     string fileTypes="tex",
+    //     int    constant = 1,
+    //     string context = "image context",
+    //     int    connectable = 0,
+    //     string help = "Ignored if Deriv2 comes from a connection. This expects the "\
+    //                   "first derivative squared map, let H be a height field, then "\
+    //                   "each channel are defined as r=(dH/du)^2, g=(dH/dv)^2, "\
+    //                   "b=dH/du*dH/dv",
+    // ]],
 
-    float frequency = 1 [[
-        string help = "This is a multiplier to st-coordinates",
-    ]],
+    // float frequency = 1 [[
+    //     string help = "This is a multiplier to st-coordinates",
+    // ]],
 
-    float rotation = 0 [[
-        string help = "This is a rotation control to st-coordinates, in degrees",
-    ]],
+    // float rotation = 0 [[
+    //     string help = "This is a rotation control to st-coordinates, in degrees",
+    // ]],
 
 
-    float blur = 0 [[
-        string page="Filtering",
-        string help = "Amount of blur to apply to texture lookup.",
-    ]],
+    // float blur = 0 [[
+    //     string page="Filtering",
+    //     string help = "Amount of blur to apply to texture lookup.",
+    // ]],
     
-#ifdef PIXAR_ANIM
-    string filter = "smartcubic" [[
-        string page="Filtering",
-        string widget = "popup",
-        string options = "linear|smartcubic|cubic|closest", 
-        int    connectable = 0,
-        string help = "Which filter to use.",    
-    ]],
-#endif
+// #ifdef PIXAR_ANIM
+//     string filter = "smartcubic" [[
+//         string page="Filtering",
+//         string widget = "popup",
+//         string options = "linear|smartcubic|cubic|closest", 
+//         int    connectable = 0,
+//         string help = "Which filter to use.",    
+//     ]],
+// #endif
 
-    float filterScale = 1 [[
-        string widget = "null" , 
-        string help = "Multiplies the size of the texture filter, "\
-                      "less than one for sharper textures.",
-    ]],
+    // float filterScale = 1 [[
+    //     string help = "Multiplies the size of the texture filter, "\
+    //                   "less than one for sharper textures.",
+    // ]],
 
-    float s = 0 [[
-        int    lockgeom=0,
-        string widget="null",
-        int    connectable = 0
-    ]],
+    float s = 0,
+    float t = 0,
+
+    // // ZENO: WHAT DO THESE REPRESENT?? HOW TO USE?
+    // output Struct_Eigen2D resultBumpRough =
+    //     { 0, 0, vector(1,0,0), vector(0,1,0), vector(0,0,1)} [[
+    //     string widget="null",
+    // ]],
+    
+    output vector resultBumpNormal = vector(0),
+    output float resultRoughness = 0,
+    output float resultAnisotropy = 0,
+    output vector resultAnisotropyDirection = vector(0),
+    output float resultHeightMap = 0,
+    output vector test_tex01 = vector(0),
+    output vector test_tex02 = vector(0),
+
+// #ifdef PIXAR_ANIM
+//     output float debugRoughnessU = 0 [[
+//         string widget="null"
+//     ]],
+    
+//     output float debugRoughnessV = 0 [[
+//         string widget="null"
+//     ]],
         
-    float t = 0 [[
-        int    lockgeom=0,
-        string widget="null",
-        int    connectable = 0
-    ]],
-
-    output Struct_Eigen2D resultBumpRough =
-        { 0, 0, vector(1,0,0), vector(0,1,0), vector(0,0,1)} [[
-        string widget="null",
-    ]],
+//     output vector debugRoughDirU = vector(0) [[
+//         string widget="null"
+//     ]],
     
-    output vector resultBumpNormal = normal(0) [[
-        string widget="null",
-    ]],
-    
-    output float resultRoughness = 0 [[
-        string widget="null",
-    ]],
-    
-    output float resultAnisotropy = 0 [[
-        string widget="null"
-    ]],
-    
-    output vector resultAnisotropyDirection = vector(0) [[
-        string widget="null"
-    ]],
-    
-    output float resultHeightMap = 0 [[
-        string widget="null"
-    ]],
-
-#ifdef PIXAR_ANIM
-    output float debugRoughnessU = 0 [[
-        string widget="null"
-    ]],
-    
-    output float debugRoughnessV = 0 [[
-        string widget="null"
-    ]],
-        
-    output vector debugRoughDirU = vector(0) [[
-        string widget="null"
-    ]],
-    
-    output vector debugRoughDirV = vector(0) [[
-        string widget="null"
-    ]],
-#endif
+//     output vector debugRoughDirV = vector(0) [[
+//         string widget="null"
+//     ]],
+// #endif
 )
 {
 
     if (enable == 1) {
 
-#ifndef PIXAR_ANIM
-        string filter = "smartcubic";
-#endif
+// #ifndef PIXAR_ANIM
+//         string filter = "smartcubic";
+// #endif
         
         float inputS; float inputT; float textureFilterScale;
         ColorOpacity resultRGBA_d1; ColorOpacity resultRGBA_d2;
         color deriv1; color deriv2;
 
-        Texture_Std_SetupInputs(inputManifold, s, t,
-                                filterScale, 
-                                inputS, inputT, textureFilterScale);
+        // Texture_Std_SetupInputs(inputManifold, s, t,
+        //                         filterScale, 
+        //                         inputS, inputT, textureFilterScale);
 
-        point QT = rotate(point(inputS,inputT,0),radians(rotation),
-                          point(0,0,0),point(0,0,1)) * frequency;
-        inputS = QT[0];
-        inputT = QT[1];
+        // point QT = rotate(point(inputS,inputT,0),radians(rotation),
+        //                   point(0,0,0),point(0,0,1)) * frequency;
+        // inputS = QT[0];
+        // inputT = QT[1];
+        inputS = s;
+        inputT = t;
         
-#ifdef PIXAR_ANIM
-        /* For Pixar Internal Use Only
-        NOTE: The following input_d* options are designed to get around the problem with C++
-        inputs do not have automatic differentiation for osl inputs. Therefore we can't
-        have bumprough from C++ textures and we have a lot of textures (leonardo, udim, etc)
-        that has to be in C++.
+// #ifdef PIXAR_ANIM
+//         /* For Pixar Internal Use Only
+//         NOTE: The following input_d* options are designed to get around the problem with C++
+//         inputs do not have automatic differentiation for osl inputs. Therefore we can't
+//         have bumprough from C++ textures and we have a lot of textures (leonardo, udim, etc)
+//         that has to be in C++.
         
-        So the way to get around that is to input osl st-manifold that we know corresponds
-        to the parameterization of the textures that is being read. This is not, in-general,
-        valid. Intuitively, you can think of a slope along one parametric direction do not
-        produce the same look if you rotated the slope vector to another parametric direction.
+//         So the way to get around that is to input osl st-manifold that we know corresponds
+//         to the parameterization of the textures that is being read. This is not, in-general,
+//         valid. Intuitively, you can think of a slope along one parametric direction do not
+//         produce the same look if you rotated the slope vector to another parametric direction.
         
-        I still think when we have all ols networks, we should remove input_d1 and input_d2
-        unless we can somehow gaurantee that the *manifold* is the exact same that is used
-        for the *texture* input as well.
+//         I still think when we have all ols networks, we should remove input_d1 and input_d2
+//         unless we can somehow gaurantee that the *manifold* is the exact same that is used
+//         for the *texture* input as well.
         
-        jling (2016.09.27)
-        */
+//         jling (2016.09.27)
+//         */
         
         
-        if (isconnected(input_d1) ) {
-            deriv1 = input_d1;
-        } else {
-            Texture_GetColor(filename_d1, inputS, inputT, 
-                            filter, textureFilterScale, blur,
-                            color(0), 0, 0,
-                            resultRGBA_d1);
+//         if (isconnected(input_d1) ) {
+//             deriv1 = input_d1;
+//         } else {resultBumpNormal
+//                             resultRGBA_d1);
 
-            deriv1 = resultRGBA_d1.c;
-        }
+//             deriv1 = resultRGBA_d1.c;
+//         }
 
-        if (isconnected(input_d2) ) {
-            deriv2 = input_d2;
-        } else {
-            Texture_GetColor(filename_d2, inputS, inputT, 
-                            filter, textureFilterScale, blur,
-                            color(0), 0, 0,
-                            resultRGBA_d2);
+//         if (isconnected(input_d2) ) {
+//             deriv2 = input_d2;
+//         } else {
+//             Texture_GetColor(filename_d2, inputS, inputT, 
+//                             filter, textureFilterScale, blur,
+//                             color(0), 0, 0,
+//                             resultRGBA_d2);
 
-            deriv2 = resultRGBA_d2.c;
-        }
-#else
+//             deriv2 = resultRGBA_d2.c;
+//         }
+// #else
         Texture_GetColor(filename_d1, inputS, inputT, 
-                        filter, textureFilterScale, blur,
+                        "smartbicubic", 1, 0,
                         color(0), 0, 0,
                         resultRGBA_d1);
         
-        Texture_GetColor(filename_d2, inputS, inputT, 
-                        filter, textureFilterScale, blur,
-                        color(0), 0, 0,
+        Texture_GetColor(filename_d1, inputS, inputT, 
+                        "smartbicubic", 1, 0,
+                        color(0), 0, 3,
                         resultRGBA_d2);
 
         deriv1 = resultRGBA_d1.c;
         deriv2 = resultRGBA_d2.c;
+        // test_tex01 = resultRGBA_d1.c;
+        // test_tex02 = resultRGBA_d2.c;
                 
-#endif
+// #endif
 
         float mys = inputS;
         float myt = inputT;
                 
         vector pPps, pPpt;
         partialDeriv(P, mys, myt, pPps, pPpt);
-                                
-        float dx=deriv1[0];
-        float dy=deriv1[1];
+
+        test_tex01 = pPps;
+        test_tex02 = pPpt;
+
+// ZENO NOTE: IS THIS CORRECT? I have 3 channels per image... h, derivS, derivT
+        // float dx=deriv1[0]; // might be wrong??
+        // float dy=deriv1[1];
+        // float dxdx=deriv2[0];
+        // float dydy=deriv2[1];
+        // float dxdy=deriv2[2];
+        float dx=deriv1[1];
+        float dy=deriv1[2];
         float dxdx=deriv2[0];
         float dydy=deriv2[1];
         float dxdy=deriv2[2];
 
+        
         /* rotation 90-degrees reverses the sign of dx, dy.
            if not inverting normal maps, do nothing.
          */
@@ -343,9 +324,9 @@ shader PxrBump2RoughnessRead
         float syy = 2*vargain*(dydy - dy*dy);
 
         float l1, l2;
-        vector v1, v2, tmpfix;
+        vector v1, v2;
 
-        covarToEigen2D(sxx, sxy, syy, l1, l2, v1, v2, tmpfix);
+        covarToEigen2D(sxx, sxy, syy, l1, l2, v1, v2);
 
         /* Projection Note:
            I have to project the x component of eigenvector to the -pPps-axis
@@ -395,20 +376,22 @@ shader PxrBump2RoughnessRead
 
         resultRoughness           = resultRoughnessU/(1+resultAnisotropy);
         resultAnisotropyDirection = _pPpu;
-        resultHeightMap           = deriv1[2];
+        resultHeightMap           = deriv1[0];
         
-        resultBumpRough.l1 = varianceU;
-        resultBumpRough.l2 = varianceV;
-        resultBumpRough.v1 = _pPpu;
-        resultBumpRough.v2 = _pPpv;
-        resultBumpRough.bumpnorm = resultBumpNormal;
 
-#ifdef PIXAR_ANIM
-        debugRoughnessU = resultRoughnessU;
-        debugRoughnessV = resultRoughnessV;
-        debugRoughDirU = _pPpu;
-        debugRoughDirV = _pPpv;        
-#endif
+        // ZENO: WHAT DO THESE REPRESENT?? HOW TO USE?
+        // resultBumpRough.l1 = varianceU;
+        // resultBumpRough.l2 = varianceV;
+        // resultBumpRough.v1 = _pPpu;
+        // resultBumpRough.v2 = _pPpv;
+        // resultBumpRough.bumpnorm = resultBumpNormal;
+
+// #ifdef PIXAR_ANIM
+//         debugRoughnessU = resultRoughnessU;
+//         debugRoughnessV = resultRoughnessV;
+//         debugRoughDirU = _pPpu;
+//         debugRoughDirV = _pPpv;        
+// #endif
         
     } else {
 
@@ -417,18 +400,19 @@ shader PxrBump2RoughnessRead
         resultAnisotropyDirection = vector(1,0,0);
         resultBumpNormal = N;
         
-        resultBumpRough.l1 = baseRoughness*baseRoughness;
-        resultBumpRough.l2 = baseRoughness*baseRoughness;
-        resultBumpRough.v1 = vector(1,0,0);
-        resultBumpRough.v2 = vector(0,1,0);
-        resultBumpRough.bumpnorm = resultBumpNormal;
+        // ZENO: WHAT DO THESE REPRESENT?? HOW TO USE?
+        // resultBumpRough.l1 = baseRoughness*baseRoughness;
+        // resultBumpRough.l2 = baseRoughness*baseRoughness;
+        // resultBumpRough.v1 = vector(1,0,0);
+        // resultBumpRough.v2 = vector(0,1,0);
+        // resultBumpRough.bumpnorm = resultBumpNormal;
         
-#ifdef PIXAR_ANIM
-        debugRoughnessU = baseRoughness;
-        debugRoughnessV = baseRoughness;
-        debugRoughDirU = vector(1,0,0);
-        debugRoughDirV = vector(0,1,0);
-#endif
+// #ifdef PIXAR_ANIM
+//         debugRoughnessU = baseRoughness;
+//         debugRoughnessV = baseRoughness;
+//         debugRoughDirU = vector(1,0,0);
+//         debugRoughDirV = vector(0,1,0);
+// #endif
 
     }
 }

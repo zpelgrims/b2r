@@ -5,3 +5,10 @@ Example implementation code for the Pixar tech memo titled "Geometry into Shadin
 Licensing information can be found in the license.txt file.
 
 At this time, Pixar has no plans to provide support or receive contributions to the example implementation code.
+
+
+
+'/home/cactus/Arnold-7.0.0.0-linux/bin/oslc' src/PxrBump2RoughnessMake.osl -o dist/PxrBump2RoughnessMake.oso
+'/home/cactus/Arnold-7.0.0.0-linux/bin/oslc' src/PxrBump2RoughnessRead.osl -o dist/PxrBump2RoughnessRead.oso
+'/home/cactus/Arnold-7.0.0.0-linux/bin/maketx' /home/cactus/b2r/scenes/36_scratches_smudges_fingerprints_specs.tif --bumpslopes
+

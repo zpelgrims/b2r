@@ -32,8 +32,7 @@
 
 
 
-
-struct Struct_Eigen2D
+struct Struct_Bump2RoughnessBundle
 {
     float l1;
     float l2;
@@ -43,6 +42,16 @@ struct Struct_Eigen2D
 };
 
 
+struct Struct_Eigen2D
+{
+    float l1;
+    float l2;
+    vector v1;
+    vector v2;
+};
+
+
+// NOTE: I don't think arnold supports Dx(custom variable)
 void partialDeriv(point Q, float a, float b,
                   output vector dQda, output vector dQdb)
 {
@@ -54,12 +63,13 @@ void partialDeriv(point Q, float a, float b,
     float C = Dy(a);
     float D = Dy(b);
 
-    float invdet = 1/(A*D - B*C);
+    float invdet = 1.0/(A*D - B*C);
     
     dQda = (dQdx*D-dQdy*B)*invdet;
     dQdb = (dQdy*A-dQdx*C)*invdet;
 }
 
+// NOTE: I don't think arnold supports Dx(custom variable)
 void partialDeriv(float Q, float a, float b,
                   output float dQda, output float dQdb)
 {
@@ -71,7 +81,7 @@ void partialDeriv(float Q, float a, float b,
     float C = Dy(a);
     float D = Dy(b);
 
-    float invdet = 1/(A*D - B*C);
+    float invdet = 1.0/(A*D - B*C);
     
     dQda = (dQdx*D-dQdy*B)*invdet;
     dQdb = (dQdy*A-dQdx*C)*invdet;
@@ -79,7 +89,7 @@ void partialDeriv(float Q, float a, float b,
 
 void covarToEigen2D(float a, float b, float c,
                     output float l1, output float l2,
-                    output vector v1, output vector v2, output vector bumpnorm)
+                    output vector v1, output vector v2)
 {
     //2x2 covariance matrix to eigen space transformation
     
@@ -134,13 +144,14 @@ void SymetricEigenVecVal2D(float a, float b, float c,
 void covarToEigen2D(float a, float b, float c,
                     output Struct_Eigen2D Eigens)
 {
-    covarToEigen2D(a, b, c, Eigens.l1, Eigens.l2, Eigens.v1, Eigens.v2, Eigens.bumpnorm);
+    covarToEigen2D(a, b, c, Eigens.l1, Eigens.l2, Eigens.v1, Eigens.v2);
 }
+
 
 
 void bumpRoughMapping(color D1, color D2,
                       output float l1, output float l2,
-                      output vector v1, output vector v2, output vector bumpnorm)
+                      output vector v1, output vector v2)
 {
     float dx=D1[0];
     float dy=D1[1];
@@ -152,8 +163,7 @@ void bumpRoughMapping(color D1, color D2,
     float sxy = 2*(dxdy - dx*dy);
     float syy = 2*(dydy - dy*dy);
 
-    vector tmpfix = vector(1,1,1);
-    covarToEigen2D(sxx, sxy, syy, l1, l2, v1, v2, tmpfix);
+    covarToEigen2D(sxx, sxy, syy, l1, l2, v1, v2);
     v1 = normalize(v1);
     v2 = normalize(v2);
 }
@@ -161,42 +171,13 @@ void bumpRoughMapping(color D1, color D2,
 void bumpRoughMapping(color D1, color D2,
                       output Struct_Eigen2D Eigens)
 {
-    bumpRoughMapping(D1, D2, Eigens.l1, Eigens.l2, Eigens.v1, Eigens.v2, Eigens.bumpnorm);
+    bumpRoughMapping(D1, D2, Eigens.l1, Eigens.l2, Eigens.v1, Eigens.v2);
 }
 
 /*
     private function use the function below to conform to standard
  */
-void combineEigens2D_private(float al1, float al2, vector av1, vector av2, vector tmpfix1,
-                     float bl1, float bl2, vector bv1, vector bv2, vector tmpfix2,
-                     output float ol1, output float ol2,
-                     output vector ov1, output vector ov2, output vector tmpfix3)
-{
-    
-    vector _av1 = normalize(av1);
-    vector _av2 = normalize(av2);
-    vector _bv1 = normalize(bv1);
-    vector _bv2 = normalize(bv2);
-    
-    if (dot(av1,bv1)<0) {                   // make sure that both eigen vectors are facing the same hemisphere
-        _bv1=-_bv1;
-        _bv2=-_bv2;
-    }
-    
-    ol2 = al2+bl2;                          // this accounts for the isotropic sum of the two eigen spaces
-    
-    vector bv_delta = bl1*_bv1- bl2*_bv1;   // this measures how elliptical b eigenspace is
-    
-    ov1 = al1*_av1+bv_delta;                // now figure out the anisotropic part of the new eigenvectors
-    ov2 = normalize(cross(N, ov1));         // then orthogonalize
-    ol1 = length(ov1);
-    ov1 = normalize(ov1);    
-}
-                                                                                                                                                                                                    
-/*
-    private function use the function below to conform to standard
- */
-// void combineEigens2D_private_v1(float al1, float al2, vector av1, vector av2,
+// void _combineEigens2D(float al1, float al2, vector av1, vector av2,
 //                      float bl1, float bl2, vector bv1, vector bv2,
 //                      output float ol1, output float ol2,
 //                      output vector ov1, output vector ov2)
@@ -221,9 +202,38 @@ void combineEigens2D_private(float al1, float al2, vector av1, vector av2, vecto
 //     ol1 = length(ov1);
 //     ov1 = normalize(ov1);    
 // }
+                                                                                                                                                                                                    
+/*
+    private function use the function below to conform to standard
+ */
+void _combineEigens2D_v1(float al1, float al2, vector av1, vector av2,
+                     float bl1, float bl2, vector bv1, vector bv2,
+                     output float ol1, output float ol2,
+                     output vector ov1, output vector ov2)
+{
+    
+    vector _av1 = normalize(av1);
+    vector _av2 = normalize(av2);
+    vector _bv1 = normalize(bv1);
+    vector _bv2 = normalize(bv2);
+    
+    if (dot(av1,bv1)<0) {                   // make sure that both eigen vectors are facing the same hemisphere
+        _bv1=-_bv1;
+        _bv2=-_bv2;
+    }
+    
+    ol2 = al2+bl2;                          // this accounts for the isotropic sum of the two eigen spaces
+    
+    vector bv_delta = bl1*_bv1- bl2*_bv1;   // this measures how elliptical b eigenspace is
+    
+    ov1 = al1*_av1+bv_delta;                // now figure out the anisotropic part of the new eigenvectors
+    ov2 = normalize(cross(N, ov1));         // then orthogonalize
+    ol1 = length(ov1);
+    ov1 = normalize(ov1);    
+}
 
 /* this swaps the major and minor eigens */
-void swapEigen2D_private(float al1, float al2, vector av1, vector av2,
+void _swapEigen2D(float al1, float al2, vector av1, vector av2,
                   output float ol1, output float ol2, output vector ov1, output vector ov2)
 {
     ol1 = al2;
@@ -233,7 +243,7 @@ void swapEigen2D_private(float al1, float al2, vector av1, vector av2,
 }
 
 /* this normalizes both the major and minor eigens */
-void normalizeEigen2D_private(float al1, float al2, vector av1, vector av2,
+void _normalizeEigen2D(float al1, float al2, vector av1, vector av2,
                        output float ol1, output float ol2, output vector ov1, output vector ov2)
 {
     float w1 = length(av1);
@@ -246,7 +256,7 @@ void normalizeEigen2D_private(float al1, float al2, vector av1, vector av2,
 
 /* we would always want the eigenvalues to be right-handed, this function does not change the
    handedness of the major compoent, but reverse the minor component to enforce the rule */
-void forceRhandEigen2D_private(float al1, float al2, vector av1, vector av2,
+void _forceRhandEigen2D(float al1, float al2, vector av1, vector av2,
                        output float ol1, output float ol2, output vector ov1, output vector ov2)
 {
     
@@ -263,7 +273,7 @@ void forceRhandEigen2D_private(float al1, float al2, vector av1, vector av2,
 }
 
 /* if al1 and bl1 are pointed in opposite directions, flip bl1 and bl2 so they are aligned with al1 and al2 */
-void alignEigenB2D_private(float al1, float al2, vector av1, vector av2,
+void _alignEigenB2D(float al1, float al2, vector av1, vector av2,
                     float bl1, float bl2, vector bv1, vector bv2,
                     output float ol1, output float ol2, output vector ov1, output vector ov2)
 {
@@ -281,45 +291,42 @@ void alignEigenB2D_private(float al1, float al2, vector av1, vector av2,
 }
 
 
-// IMPORTANT NOTE!! the following function was enabled, but it's a redifinition, not sure what to do..
-
-
-
 /*
     private function use the function below to conform to standard
  */
-// void combineEigens2D_private(float al1, float al2, vector av1, vector av2,
-//                       float bl1, float bl2, vector bv1, vector bv2,
-//                       output float ol1, output float ol2, output vector ov1, output vector ov2)
-// {
+void _combineEigens2D(float al1, float al2, vector av1, vector av2,
+                      float bl1, float bl2, vector bv1, vector bv2,
+                      output float ol1, output float ol2, 
+                      output vector ov1, output vector ov2)
+{
     
-//     normalizeEigen2D_private(al1, al2, av1, av2, al1, al2, av1, av2);
-//     normalizeEigen2D_private(bl1, bl2, bv1, bv2, bl1, bl2, bv1, bv2);
-//     if(al1<al2){
-//         swapEigen2D_private(al1, al2, av1, av2, al1, al2, av1, av2);
-//     }
-//     if(bl1<bl2){
-//         swapEigen2D_private(bl1, bl2, bv1, bv2, bl1, bl2, bv1, bv2);
-//     }
-//     forceRhandEigen2D_private(al1, al2, av1, av2, al1, al2, av1, av2);
-//     forceRhandEigen2D_private(bl1, bl2, bv1, bv2, bl1, bl2, bv1, bv2);
-//     alignEigenB2D_private(al1, al2, av1, av2,
-//                    bl1, bl2, bv1, bv2,
-//                    bl1, bl2, bv1, bv2);
+    _normalizeEigen2D(al1, al2, av1, av2, al1, al2, av1, av2);
+    _normalizeEigen2D(bl1, bl2, bv1, bv2, bl1, bl2, bv1, bv2);
+    if(al1<al2){
+        _swapEigen2D(al1, al2, av1, av2, al1, al2, av1, av2);
+    }
+    if(bl1<bl2){
+        _swapEigen2D(bl1, bl2, bv1, bv2, bl1, bl2, bv1, bv2);
+    }
+    _forceRhandEigen2D(al1, al2, av1, av2, al1, al2, av1, av2);
+    _forceRhandEigen2D(bl1, bl2, bv1, bv2, bl1, bl2, bv1, bv2);
+    _alignEigenB2D(al1, al2, av1, av2,
+                   bl1, bl2, bv1, bv2,
+                   bl1, bl2, bv1, bv2);
         
-//     vector sumv = al1*av1+bl1*bv1;
-//     //proof that sin(theta) is the same whether measured from av1 or av2
-//     //printf("test.av1=%f,    test.bv1=%f\n", length(cross(normalize(sumv),al1*av1)), length(cross(normalize(sumv),bl1*bv1)));
+    vector sumv = al1*av1+bl1*bv1;
+    //proof that sin(theta) is the same whether measured from av1 or av2
+    //printf("test.av1=%f,    test.bv1=%f\n", length(cross(normalize(sumv),al1*av1)), length(cross(normalize(sumv),bl1*bv1)));
     
-//     ol1 = al1+bl1;
-//     ol2 = al2+bl2;
-//     ov1 = normalize(sumv);
+    ol1 = al1+bl1;
+    ol2 = al2+bl2;
+    ov1 = normalize(sumv);
 
-//     //project to tangent plane
-//     ov2 = normalize(cross(N, ov1));
-//     ov1 = normalize(cross(ov2, N));
+    //project to tangent plane
+    ov2 = normalize(cross(N, ov1));
+    ov1 = normalize(cross(ov2, N));
     
-// }
+}
 
 
 /*
@@ -342,8 +349,8 @@ void combineEigens2D_privateTest(float al1, float al2, vector av1, vector av2,
     public function, this is called by outside functions not in this .h file
  */
 
-void combineEigens2D(Struct_Eigen2D a, Struct_Eigen2D b,
-                     output Struct_Eigen2D c)
+void combineEigens2D(Struct_Bump2RoughnessBundle a, Struct_Bump2RoughnessBundle b,
+                     output Struct_Bump2RoughnessBundle c)
 {
     
     if(a.l1==0 && a.l2==0){
@@ -351,9 +358,9 @@ void combineEigens2D(Struct_Eigen2D a, Struct_Eigen2D b,
     } else if (b.l1==0 && b.l2==0){
         c = a;
     } else {
-        combineEigens2D_private(a.l1, a.l2, a.v1, a.v2, a.bumpnorm,
-                        b.l1, b.l2, b.v1, b.v2, b.bumpnorm,
-                        c.l1, c.l2, c.v1, c.v2, c.bumpnorm);
+        _combineEigens2D(a.l1, a.l2, a.v1, a.v2,
+                        b.l1, b.l2, b.v1, b.v2,
+                        c.l1, c.l2, c.v1, c.v2);
     }
 }
 
@@ -367,10 +374,13 @@ void combineEigens2D(Struct_Eigen2D a, Struct_Eigen2D b,
     the same as coloropacity over-composite operations.
  */
 
-void EigenBlend_Over(Struct_Eigen2D Eover,       float Oover,
-                     Struct_Eigen2D Eunder,      float Ounder,
-                     output Struct_Eigen2D Eout, output float Oout)
+void EigenBlend_Over(Struct_Bump2RoughnessBundle Eover,       float Oover,
+                     Struct_Bump2RoughnessBundle Eunder,      float Ounder,
+                     output Struct_Bump2RoughnessBundle Eout, output float Oout)
 {
+    Struct_Bump2RoughnessBundle Eover_writeable = Eover;
+    Struct_Bump2RoughnessBundle Eunder_writeable = Eunder;
+
     float Ototal = Oover+Ounder;
     
     if(Ototal<=0){
@@ -393,38 +403,36 @@ void EigenBlend_Over(Struct_Eigen2D Eover,       float Oover,
     */
     float divOtotal = 1/Ototal; 
     
-    Struct_Eigen2D Eunder_new = Eunder;
-    Struct_Eigen2D Eover_new = Eover;
-
-    Eunder_new.l1 = (1.-Oover)*Eunder_new.l1*divOtotal;
-    Eunder_new.l2 = (1.-Oover)*Eunder_new.l2*divOtotal;
+    Eunder_writeable.l1 = (1.-Oover)*Eunder_writeable.l1*divOtotal;
+    Eunder_writeable.l2 = (1.-Oover)*Eunder_writeable.l2*divOtotal;
     
-    Eover_new.l1 = Oover*Eover_new.l1*divOtotal;
-    Eover_new.l2 = Oover*Eover_new.l2*divOtotal;
+    Eover_writeable.l1 = Oover*Eover_writeable.l1*divOtotal;
+    Eover_writeable.l2 = Oover*Eover_writeable.l2*divOtotal;
     
-    combineEigens2D(Eover_new, Eunder_new, Eout); //full intensity combine of the eigenvalues
+    combineEigens2D(Eover_writeable, Eunder_writeable, Eout); //full intensity combine of the eigenvalues
 
-    Eout.bumpnorm = Oover*Eover_new.bumpnorm + (1.-Oover)*Eunder_new.bumpnorm;
+    Eout.bumpnorm = Oover*Eover_writeable.bumpnorm + (1.-Oover)*Eunder_writeable.bumpnorm;
     Eout.bumpnorm = normalize(Eout.bumpnorm);
     Oout = Oover + (1.-Oover)*Ounder;     //plain-vennila over for the opacity values
 }
 
-void EigenBlend_Add(Struct_Eigen2D Eover,       float Oover,
-                    Struct_Eigen2D Eunder,      float Ounder,
-                    output Struct_Eigen2D Eout, output float Oout)
+void EigenBlend_Add(Struct_Bump2RoughnessBundle Eover,       float Oover,
+                    Struct_Bump2RoughnessBundle Eunder,      float Ounder,
+                    output Struct_Bump2RoughnessBundle Eout, output float Oout)
 {
+    Struct_Bump2RoughnessBundle Eover_writeable = Eover;
+    Struct_Bump2RoughnessBundle Eunder_writeable = Eunder;
+
     if(Oover<=0){
         Eout = Eunder;
         Oout = Ounder;
         return;
     }
     
-    Struct_Eigen2D Eover_new = Eover;
-    
-    Eover_new.l1 = Oover*Eover_new.l1;    
-    Eover_new.l2 = Oover*Eover_new.l2;
-    combineEigens2D(Eover_new, Eunder, Eout);
-    Eout.bumpnorm = Oover*Eover_new.bumpnorm + Eunder.bumpnorm;
+    Eover_writeable.l1 = Oover*Eover_writeable.l1;    
+    Eover_writeable.l2 = Oover*Eover_writeable.l2;
+    combineEigens2D(Eover_writeable, Eunder_writeable, Eout);
+    Eout.bumpnorm = Oover*Eover_writeable.bumpnorm + Eunder_writeable.bumpnorm;
     Eout.bumpnorm = normalize(Eout.bumpnorm);
     Oout = Oover + (1.-Oover)*Ounder;     //plain-vennila over for the opacity values
 }
