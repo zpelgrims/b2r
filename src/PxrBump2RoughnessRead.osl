@@ -146,8 +146,8 @@ shader PxrBump2RoughnessRead
     output float resultAnisotropy = 0,
     output vector resultAnisotropyDirection = vector(0),
     output float resultHeightMap = 0,
-    output vector test_tex01 = vector(0),
-    output vector test_tex02 = vector(0),
+    output color test_tex01 = color(0),
+    output color test_tex02 = color(0),
 
 // #ifdef PIXAR_ANIM
 //     output float debugRoughnessU = 0 [[

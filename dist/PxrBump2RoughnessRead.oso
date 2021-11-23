@@ -1,79 +1,79 @@
 OpenShadingLanguage 1.00
-# Compiled by oslc 1.12.0
+# Compiled by oslc 1.11.0dev
 # options: -o dist/PxrBump2RoughnessRead.oso
 shader PxrBump2RoughnessRead
 param	int	enable	1		%meta{string,widget,"checkBox"} %meta{int,connectable,0} %meta{string,help,"This will enabling Bump Roughness or disable it"}  %read{0,0} %write{2147483647,-1}
 param	int	invertBumpNormal	0		%meta{string,widget,"checkBox"} %meta{int,connectable,0} %meta{string,help,"This will invert Bump Normal"}  %read{84,84} %write{2147483647,-1}
-param	float	baseRoughness	0.00100000005		%meta{string,help,"This is the roughness of a micro-facet at a singletexel level of the input textures"}  %read{164,196} %write{2147483647,-1}
-param	float	gain	1		%meta{string,help,"This is a multiplier to the aggregate roughness and normal map"}  %read{110,110} %write{2147483647,-1}
+param	float	baseRoughness	0.00100000005		%meta{string,help,"This is the roughness of a micro-facet at a singletexel level of the input textures"}  %read{172,204} %write{2147483647,-1}
+param	float	gain	1		%meta{string,help,"This is a multiplier to the aggregate roughness and normal map"}  %read{118,118} %write{2147483647,-1}
 param	float	bumpNormalGain	1		%meta{string,help,"multiplier to the normal map magnitude"}  %read{103,107} %write{2147483647,-1}
-param	float	anisotropyGain	1		%meta{string,help,"This is a multiplier to the aggregate anisotropy"}  %read{175,177} %write{2147483647,-1}
+param	float	anisotropyGain	1		%meta{string,help,"This is a multiplier to the aggregate anisotropy"}  %read{183,185} %write{2147483647,-1}
 param	string	filename_d1	""		%meta{string,widget,"assetIdInput"} %meta{string,fileTypes,"tex"} %meta{int,constant,1} %meta{string,context,"image context"} %meta{int,connectable,0} %meta{string,help,"This expects the two derivative maps, constructed by the --bumpslopes maketx option. See the maketx manual for more information."}  %read{7,52} %write{2147483647,-1}
 param	float	s	0		%read{2,2} %write{2147483647,-1} %derivs
 param	float	t	0		%read{3,3} %write{2147483647,-1} %derivs
-oparam	vector	resultBumpNormal	0 0 0		%read{109,109} %write{105,199}
-oparam	float	resultRoughness	0		%read{2147483647,-1} %write{193,196}
-oparam	float	resultAnisotropy	0		%read{2147483647,-1} %write{197,197}
-oparam	vector	resultAnisotropyDirection	0 0 0		%read{2147483647,-1} %write{194,198}
-oparam	float	resultHeightMap	0		%read{2147483647,-1} %write{195,195}
-oparam	vector	test_tex01	0 0 0		%read{2147483647,-1} %write{77,77}
-oparam	vector	test_tex02	0 0 0		%read{2147483647,-1} %write{78,78}
+oparam	vector	resultBumpNormal	0 0 0		%read{109,117} %write{105,207}
+oparam	float	resultRoughness	0		%read{2147483647,-1} %write{201,204}
+oparam	float	resultAnisotropy	0		%read{2147483647,-1} %write{205,205}
+oparam	vector	resultAnisotropyDirection	0 0 0		%read{2147483647,-1} %write{202,206}
+oparam	float	resultHeightMap	0		%read{2147483647,-1} %write{203,203}
+oparam	color	test_tex01	0 0 0		%read{2147483647,-1} %write{77,77}
+oparam	color	test_tex02	0 0 0		%read{2147483647,-1} %write{78,78}
 global	point	P	%read{59,60} %write{2147483647,-1} %derivs
-global	normal	N	%read{94,199} %write{2147483647,-1}
+global	normal	N	%read{94,207} %write{2147483647,-1}
 global	normal	Ng	%read{90,90} %write{2147483647,-1}
-local	vector	___337_dQdx	%read{69,74} %write{59,59}
-local	vector	___337_dQdy	%read{70,73} %write{60,60}
-local	float	___337_A	%read{65,73} %write{61,61}
-local	float	___337_B	%read{66,70} %write{62,62}
-local	float	___337_C	%read{66,74} %write{63,63}
-local	float	___337_D	%read{65,69} %write{64,64}
-local	float	___337_invdet	%read{72,76} %write{68,68}
-local	float	___339_del	%read{135,138} %write{133,133}
-local	int	___385_texExists	%read{13,38} %write{6,37}
-local	float	___394_inputS	%read{27,56} %write{2,2} %derivs
-local	float	___394_inputT	%read{25,57} %write{3,3} %derivs
-local	color	___394_resultRGBA_d1.c	%read{28,54} %write{23,28} %mystruct{___394_resultRGBA_d1} %mystructfield{0}
-local	float	___394_resultRGBA_d1.a	%read{2147483647,-1} %write{24,27} %mystruct{___394_resultRGBA_d1} %mystructfield{1}
-local	color	___394_resultRGBA_d2.c	%read{53,55} %write{48,53} %mystruct{___394_resultRGBA_d2} %mystructfield{0}
-local	float	___394_resultRGBA_d2.a	%read{2147483647,-1} %write{49,52} %mystruct{___394_resultRGBA_d2} %mystructfield{1}
-local	color	___394_deriv1	%read{79,195} %write{54,54}
-local	color	___394_deriv2	%read{81,83} %write{55,55}
-local	float	___394_mys	%read{61,63} %write{56,56} %derivs
-local	float	___394_myt	%read{62,64} %write{57,57} %derivs
-local	vector	___394_pPps	%read{77,158} %write{72,99}
-local	vector	___394_pPpt	%read{78,162} %write{76,100}
-local	float	___394_dx	%read{86,116} %write{79,86}
-local	float	___394_dy	%read{87,120} %write{80,87}
-local	float	___394_dxdx	%read{113,113} %write{81,81}
-local	float	___394_dydy	%read{121,121} %write{82,82}
-local	float	___394_dxdy	%read{117,117} %write{83,83}
-local	vector	___394_PN	%read{90,100} %write{88,97}
-local	int	___394_lefthanded	%read{95,101} %write{89,93}
-local	float	___394_vargain	%read{111,119} %write{110,110}
-local	float	___394_sxx	%read{124,137} %write{114,114}
-local	float	___394_sxy	%read{125,149} %write{118,118}
-local	float	___394_syy	%read{129,148} %write{122,122}
-local	float	___394_l1	%read{142,165} %write{136,136}
-local	float	___394_l2	%read{148,166} %write{139,139}
-local	vector	___394_v1	%read{145,155} %write{140,145}
-local	vector	___394_v2	%read{151,161} %write{146,151}
-local	vector	___394__pPpu	%read{194,194} %write{157,157}
-local	vector	___394__pPpv	%read{2147483647,-1} %write{163,163}
-local	float	___394_base_roughsqr	%read{165,166} %write{164,164}
-local	float	___394_varianceU	%read{167,190} %write{165,187}
-local	float	___394_varianceV	%read{169,191} %write{166,189}
-local	float	___394_resultRoughnessU	%read{171,193} %write{168,190}
-local	float	___394_resultRoughnessV	%read{171,171} %write{170,191}
-local	float	___394_rudivrv	%read{172,173} %write{171,171}
-local	float	___394_resultAnisotropy	%read{177,192} %write{174,180}
-local	float	___397__alpha	%read{187,188} %write{185,185}
-local	float	___397_variance	%read{187,189} %write{186,186}
-const	int	$const1	1		%read{0,161} %write{2147483647,-1}
+local	vector	___332_dQdx	%read{69,74} %write{59,59}
+local	vector	___332_dQdy	%read{70,73} %write{60,60}
+local	float	___332_A	%read{65,73} %write{61,61}
+local	float	___332_B	%read{66,70} %write{62,62}
+local	float	___332_C	%read{66,74} %write{63,63}
+local	float	___332_D	%read{65,69} %write{64,64}
+local	float	___332_invdet	%read{72,76} %write{68,68}
+local	float	___334_del	%read{143,146} %write{141,141}
+local	int	___380_texExists	%read{13,38} %write{6,37}
+local	float	___389_inputS	%read{27,56} %write{2,2} %derivs
+local	float	___389_inputT	%read{25,57} %write{3,3} %derivs
+local	color	___389_resultRGBA_d1.c	%read{28,54} %write{23,28} %mystruct{___389_resultRGBA_d1} %mystructfield{0}
+local	float	___389_resultRGBA_d1.a	%read{2147483647,-1} %write{24,27} %mystruct{___389_resultRGBA_d1} %mystructfield{1}
+local	color	___389_resultRGBA_d2.c	%read{53,55} %write{48,53} %mystruct{___389_resultRGBA_d2} %mystructfield{0}
+local	float	___389_resultRGBA_d2.a	%read{2147483647,-1} %write{49,52} %mystruct{___389_resultRGBA_d2} %mystructfield{1}
+local	color	___389_deriv1	%read{79,203} %write{54,54}
+local	color	___389_deriv2	%read{81,83} %write{55,55}
+local	float	___389_mys	%read{61,63} %write{56,56} %derivs
+local	float	___389_myt	%read{62,64} %write{57,57} %derivs
+local	vector	___389_pPps	%read{77,166} %write{72,99}
+local	vector	___389_pPpt	%read{78,170} %write{76,100}
+local	float	___389_dx	%read{86,124} %write{79,86}
+local	float	___389_dy	%read{87,128} %write{80,87}
+local	float	___389_dxdx	%read{121,121} %write{81,81}
+local	float	___389_dydy	%read{129,129} %write{82,82}
+local	float	___389_dxdy	%read{125,125} %write{83,83}
+local	vector	___389_PN	%read{90,115} %write{88,97}
+local	int	___389_lefthanded	%read{95,101} %write{89,93}
+local	float	___389_vargain	%read{119,127} %write{118,118}
+local	float	___389_sxx	%read{132,145} %write{122,122}
+local	float	___389_sxy	%read{133,157} %write{126,126}
+local	float	___389_syy	%read{137,156} %write{130,130}
+local	float	___389_l1	%read{150,173} %write{144,144}
+local	float	___389_l2	%read{156,174} %write{147,147}
+local	vector	___389_v1	%read{153,163} %write{148,153}
+local	vector	___389_v2	%read{159,169} %write{154,159}
+local	vector	___389__pPpu	%read{202,202} %write{165,165}
+local	vector	___389__pPpv	%read{2147483647,-1} %write{171,171}
+local	float	___389_base_roughsqr	%read{173,174} %write{172,172}
+local	float	___389_varianceU	%read{175,198} %write{173,195}
+local	float	___389_varianceV	%read{177,199} %write{174,197}
+local	float	___389_resultRoughnessU	%read{179,201} %write{176,198}
+local	float	___389_resultRoughnessV	%read{179,179} %write{178,199}
+local	float	___389_rudivrv	%read{180,181} %write{179,179}
+local	float	___389_resultAnisotropy	%read{185,200} %write{182,188}
+local	float	___392__alpha	%read{195,196} %write{193,193}
+local	float	___392_variance	%read{195,197} %write{194,194}
+const	int	$const1	1		%read{0,169} %write{2147483647,-1}
 temp	int	$tmp1	%read{1,1} %write{0,0}
 const	string	$const2	"smartbicubic"		%read{27,52} %write{2147483647,-1}
-const	float	$const3	1		%read{25,192} %write{2147483647,-1}
-const	int	$const4	0		%read{9,197} %write{2147483647,-1}
-const	float	$const5	0		%read{24,180} %write{2147483647,-1}
+const	float	$const3	1		%read{25,200} %write{2147483647,-1}
+const	int	$const4	0		%read{9,205} %write{2147483647,-1}
+const	float	$const5	0		%read{24,188} %write{2147483647,-1}
 const	color	$const6	0 0 0		%read{23,52} %write{2147483647,-1}
 const	string	$const7	"Texture_GetColor"		%read{4,30} %write{2147483647,-1}
 const	string	$const8	""		%read{7,43} %write{2147483647,-1}
@@ -86,7 +86,7 @@ temp	int	$tmp7	%read{16,16} %write{15,15}
 temp	int	$tmp8	%read{17,21} %write{16,20}
 temp	int	$tmp9	%read{19,19} %write{18,18}
 temp	int	$tmp10	%read{20,20} %write{19,19}
-const	string	$const10	"texture not found \\'%s\\'"		%read{22,47} %write{2147483647,-1}
+const	string	$const10	"texture not found \'%s\'"		%read{22,47} %write{2147483647,-1}
 temp	float	$tmp11	%read{27,27} %write{25,25} %derivs
 const	string	$const11	"alpha"		%read{27,52} %write{2147483647,-1}
 const	string	$const12	"interp"		%read{27,52} %write{2147483647,-1}
@@ -119,7 +119,7 @@ temp	vector	$tmp29	%read{72,72} %write{71,71}
 temp	vector	$tmp30	%read{75,75} %write{73,73}
 temp	vector	$tmp31	%read{75,75} %write{74,74}
 temp	vector	$tmp32	%read{76,76} %write{75,75}
-const	int	$const22	2		%read{80,83} %write{2147483647,-1}
+const	int	$const22	2		%read{80,114} %write{2147483647,-1}
 temp	int	$tmp33	%read{85,85} %write{84,84}
 temp	float	$tmp34	%read{91,91} %write{90,90}
 temp	int	$tmp35	%read{92,92} %write{91,91}
@@ -131,74 +131,81 @@ temp	float	$tmp40	%read{105,105} %write{104,104}
 temp	float	$tmp41	%read{108,108} %write{106,106}
 temp	float	$tmp42	%read{108,108} %write{107,107}
 const	float	$const24	-1		%read{108,108} %write{2147483647,-1}
-temp	float	$tmp43	%read{114,114} %write{111,111}
-const	float	$const25	2		%read{111,184} %write{2147483647,-1}
-temp	float	$tmp44	%read{113,113} %write{112,112}
-temp	float	$tmp45	%read{114,114} %write{113,113}
-temp	float	$tmp46	%read{118,118} %write{115,115}
-temp	float	$tmp47	%read{117,117} %write{116,116}
-temp	float	$tmp48	%read{118,118} %write{117,117}
-temp	float	$tmp49	%read{122,122} %write{119,119}
-temp	float	$tmp50	%read{121,121} %write{120,120}
-temp	float	$tmp51	%read{122,122} %write{121,121}
-const	string	$const26	"covarToEigen2D"		%read{123,123} %write{2147483647,-1}
-temp	float	$tmp52	%read{127,127} %write{124,124}
-temp	float	$tmp53	%read{126,126} %write{125,125}
-const	float	$const28	4		%read{125,125} %write{2147483647,-1}
-temp	float	$tmp54	%read{127,127} %write{126,126}
-temp	float	$tmp55	%read{130,130} %write{127,127}
-temp	float	$tmp56	%read{129,129} %write{128,128}
-temp	float	$tmp57	%read{130,130} %write{129,129}
-temp	float	$tmp58	%read{132,132} %write{130,130}
-temp	float	$tmp59	%read{132,132} %write{131,131}
-temp	float	$tmp60	%read{133,133} %write{132,132}
-const	float	$const29	0.5		%read{136,139} %write{2147483647,-1}
+temp	float	$tmp43	%read{110,110} %write{109,109}
+temp	vector	$tmp44	%read{113,113} %write{110,110}
+temp	float	$tmp45	%read{112,112} %write{111,111}
+temp	vector	$tmp46	%read{113,113} %write{112,112}
+temp	vector	$tmp47	%read{116,116} %write{113,113}
+temp	float	$tmp48	%read{115,115} %write{114,114}
+temp	vector	$tmp49	%read{116,116} %write{115,115}
+temp	float	$tmp50	%read{122,122} %write{119,119}
+const	float	$const25	2		%read{119,192} %write{2147483647,-1}
+temp	float	$tmp51	%read{121,121} %write{120,120}
+temp	float	$tmp52	%read{122,122} %write{121,121}
+temp	float	$tmp53	%read{126,126} %write{123,123}
+temp	float	$tmp54	%read{125,125} %write{124,124}
+temp	float	$tmp55	%read{126,126} %write{125,125}
+temp	float	$tmp56	%read{130,130} %write{127,127}
+temp	float	$tmp57	%read{129,129} %write{128,128}
+temp	float	$tmp58	%read{130,130} %write{129,129}
+const	string	$const26	"covarToEigen2D"		%read{131,131} %write{2147483647,-1}
+temp	float	$tmp59	%read{135,135} %write{132,132}
+temp	float	$tmp60	%read{134,134} %write{133,133}
+const	float	$const28	4		%read{133,133} %write{2147483647,-1}
 temp	float	$tmp61	%read{135,135} %write{134,134}
-temp	float	$tmp62	%read{136,136} %write{135,135}
-temp	float	$tmp63	%read{138,138} %write{137,137}
-temp	float	$tmp64	%read{139,139} %write{138,138}
-const	vector	$const30	0 0 0		%read{140,146} %write{2147483647,-1}
-temp	float	$tmp65	%read{143,143} %write{142,142}
-temp	float	$tmp66	%read{144,144} %write{143,143}
-temp	float	$tmp67	%read{149,149} %write{148,148}
-temp	float	$tmp68	%read{150,150} %write{149,149}
-temp	vector	$tmp69	%read{154,154} %write{152,152}
-temp	float	$tmp70	%read{154,154} %write{153,153}
-temp	vector	$tmp71	%read{157,157} %write{154,154}
-temp	float	$tmp72	%read{156,156} %write{155,155}
-temp	vector	$tmp73	%read{157,157} %write{156,156}
-temp	vector	$tmp74	%read{160,160} %write{158,158}
-temp	float	$tmp75	%read{160,160} %write{159,159}
-temp	vector	$tmp76	%read{163,163} %write{160,160}
+temp	float	$tmp62	%read{138,138} %write{135,135}
+temp	float	$tmp63	%read{137,137} %write{136,136}
+temp	float	$tmp64	%read{138,138} %write{137,137}
+temp	float	$tmp65	%read{140,140} %write{138,138}
+temp	float	$tmp66	%read{140,140} %write{139,139}
+temp	float	$tmp67	%read{141,141} %write{140,140}
+const	float	$const29	0.5		%read{144,147} %write{2147483647,-1}
+temp	float	$tmp68	%read{143,143} %write{142,142}
+temp	float	$tmp69	%read{144,144} %write{143,143}
+temp	float	$tmp70	%read{146,146} %write{145,145}
+temp	float	$tmp71	%read{147,147} %write{146,146}
+const	vector	$const30	0 0 0		%read{148,154} %write{2147483647,-1}
+temp	float	$tmp72	%read{151,151} %write{150,150}
+temp	float	$tmp73	%read{152,152} %write{151,151}
+temp	float	$tmp74	%read{157,157} %write{156,156}
+temp	float	$tmp75	%read{158,158} %write{157,157}
+temp	vector	$tmp76	%read{162,162} %write{160,160}
 temp	float	$tmp77	%read{162,162} %write{161,161}
-temp	vector	$tmp78	%read{163,163} %write{162,162}
-temp	float	$tmp79	%read{168,168} %write{167,167}
-const	float	$const31	9.99999996e-13		%read{168,170} %write{2147483647,-1}
-temp	float	$tmp80	%read{170,170} %write{169,169}
-temp	float	$tmp81	%read{174,174} %write{172,172}
-temp	float	$tmp82	%read{174,174} %write{173,173}
-temp	int	$tmp83	%read{176,176} %write{175,175}
-temp	float	$tmp84	%read{179,179} %write{177,177}
-const	string	$const32	"clamp"		%read{178,178} %write{2147483647,-1}
-temp	float	$tmp85	%read{180,180} %write{179,179}
-temp	float	$tmp86	%read{183,183} %write{181,181}
-temp	float	$tmp87	%read{183,183} %write{182,182}
-temp	float	$tmp88	%read{184,184} %write{183,183}
-temp	float	$tmp89	%read{185,185} %write{184,184}
-temp	float	$tmp90	%read{189,189} %write{188,188}
-temp	float	$tmp91	%read{193,193} %write{192,192}
-const	vector	$const33	1 0 0		%read{198,198} %write{2147483647,-1}
+temp	vector	$tmp78	%read{165,165} %write{162,162}
+temp	float	$tmp79	%read{164,164} %write{163,163}
+temp	vector	$tmp80	%read{165,165} %write{164,164}
+temp	vector	$tmp81	%read{168,168} %write{166,166}
+temp	float	$tmp82	%read{168,168} %write{167,167}
+temp	vector	$tmp83	%read{171,171} %write{168,168}
+temp	float	$tmp84	%read{170,170} %write{169,169}
+temp	vector	$tmp85	%read{171,171} %write{170,170}
+temp	float	$tmp86	%read{176,176} %write{175,175}
+const	float	$const31	9.99999996e-13		%read{176,178} %write{2147483647,-1}
+temp	float	$tmp87	%read{178,178} %write{177,177}
+temp	float	$tmp88	%read{182,182} %write{180,180}
+temp	float	$tmp89	%read{182,182} %write{181,181}
+temp	int	$tmp90	%read{184,184} %write{183,183}
+temp	float	$tmp91	%read{187,187} %write{185,185}
+const	string	$const32	"clamp"		%read{186,186} %write{2147483647,-1}
+temp	float	$tmp92	%read{188,188} %write{187,187}
+temp	float	$tmp93	%read{191,191} %write{189,189}
+temp	float	$tmp94	%read{191,191} %write{190,190}
+temp	float	$tmp95	%read{192,192} %write{191,191}
+temp	float	$tmp96	%read{193,193} %write{192,192}
+temp	float	$tmp97	%read{197,197} %write{196,196}
+temp	float	$tmp98	%read{201,201} %write{200,200}
+const	vector	$const33	1 0 0		%read{206,206} %write{2147483647,-1}
 code ___main___
 # src/PxrBump2RoughnessRead.osl:172
 #     if (enable == 1) {
 	eq		$tmp1 enable $const1 	%filename{"src/PxrBump2RoughnessRead.osl"} %line{172} %argrw{"wrr"}
-	if		$tmp1 196 200 	%argrw{"r"}
+	if		$tmp1 204 208 	%argrw{"r"}
 # src/PxrBump2RoughnessRead.osl:190
 #         inputS = s;
-	assign		___394_inputS s 	%line{190} %argrw{"wr"}
+	assign		___389_inputS s 	%line{190} %argrw{"wr"}
 # src/PxrBump2RoughnessRead.osl:191
 #         inputT = t;
-	assign		___394_inputT t 	%line{191} %argrw{"wr"}
+	assign		___389_inputT t 	%line{191} %argrw{"wr"}
 # src/PxrBump2RoughnessRead.osl:232
 #         Texture_GetColor(filename_d1, inputS, inputT, 
 	functioncall	$const7 29 	%line{232} %argrw{"r"}
@@ -207,24 +214,24 @@ code ___main___
 	functioncall	$const7 29 	%filename{"src/PxrTexture.h"} %line{187} %argrw{"r"}
 # src/PxrTexture.h:134
 #     int texExists = 1;
-	assign		___385_texExists $const1 	%line{134} %argrw{"wr"}
+	assign		___380_texExists $const1 	%line{134} %argrw{"wr"}
 # src/PxrTexture.h:135
 #     if (path == "") {
 	eq		$tmp3 filename_d1 $const8 	%line{135} %argrw{"wrr"}
 	if		$tmp3 10 13 	%argrw{"r"}
 # src/PxrTexture.h:136
 #         texExists = 0;
-	assign		___385_texExists $const4 	%line{136} %argrw{"wr"}
+	assign		___380_texExists $const4 	%line{136} %argrw{"wr"}
 # src/PxrTexture.h:139
 #         if (checkMissing > 0) {
 	gt		$tmp4 $const4 $const4 	%line{139} %argrw{"wrr"}
 	if		$tmp4 13 13 	%argrw{"r"}
 # src/PxrTexture.h:143
 #             gettextureinfo(path, "exists", texExists);
-	gettextureinfo	$tmp5 filename_d1 $const9 ___385_texExists 	%line{143} %argrw{"wrrw"}
+	gettextureinfo	$tmp5 filename_d1 $const9 ___380_texExists 	%line{143} %argrw{"wrrw"}
 # src/PxrTexture.h:146
 #     if (texExists == 0) {
-	eq		$tmp6 ___385_texExists $const4 	%line{146} %argrw{"wrr"}
+	eq		$tmp6 ___380_texExists $const4 	%line{146} %argrw{"wrr"}
 	if		$tmp6 25 29 	%argrw{"r"}
 # src/PxrTexture.h:147
 #         if (checkMissing == 1 && path != "") {
@@ -240,20 +247,20 @@ code ___main___
 	warning		$const10 filename_d1 	%line{148} %argrw{"rr"}
 # src/PxrTexture.h:150
 #         result.c = missingColor;
-	assign		___394_resultRGBA_d1.c $const6 	%line{150} %argrw{"wr"}
+	assign		___389_resultRGBA_d1.c $const6 	%line{150} %argrw{"wr"}
 # src/PxrTexture.h:151
 #         result.a = missingAlpha;
-	assign		___394_resultRGBA_d1.a $const5 	%line{151} %argrw{"wr"}
+	assign		___389_resultRGBA_d1.a $const5 	%line{151} %argrw{"wr"}
 # src/PxrTexture.h:154
 #         result.c = texture(path, s, 1.0 - t, 
-	sub		$tmp11 $const3 ___394_inputT 	%line{154} %argrw{"wrr"}
+	sub		$tmp11 $const3 ___389_inputT 	%line{154} %argrw{"wrr"}
 # src/PxrTexture.h:167
 #                 "subimage", max(subimage, 0)
 	max		$tmp12 $const4 $const4 	%line{167} %argrw{"wrr"}
 # src/PxrTexture.h:154
 #         result.c = texture(path, s, 1.0 - t, 
-	texture		___394_resultRGBA_d1.c filename_d1 ___394_inputS $tmp11 $const11 ___394_resultRGBA_d1.a $const12 $const2 $const13 $const5 $const14 $const6 $const15 $const5 $const16 $const3 $const17 $const4 $const18 $const3 $const19 $tmp12 	%line{154} %argrw{"wrrrrwrrrrrrrrrrrrrrrr"} %argderivs{2,3}
-	assign		___394_resultRGBA_d1.c ___394_resultRGBA_d1.c 	%argrw{"wr"}
+	texture		___389_resultRGBA_d1.c filename_d1 ___389_inputS $tmp11 $const11 ___389_resultRGBA_d1.a $const12 $const2 $const13 $const5 $const14 $const6 $const15 $const5 $const16 $const3 $const17 $const4 $const18 $const3 $const19 $tmp12 	%line{154} %argrw{"wrrrrwrrrrrrrrrrrrrrrr"} %argderivs{2,3}
+	assign		___389_resultRGBA_d1.c ___389_resultRGBA_d1.c 	%argrw{"wr"}
 # src/PxrBump2RoughnessRead.osl:237
 #         Texture_GetColor(filename_d1, inputS, inputT, 
 	functioncall	$const7 54 	%filename{"src/PxrBump2RoughnessRead.osl"} %line{237} %argrw{"r"}
@@ -262,24 +269,24 @@ code ___main___
 	functioncall	$const7 54 	%filename{"src/PxrTexture.h"} %line{187} %argrw{"r"}
 # src/PxrTexture.h:134
 #     int texExists = 1;
-	assign		___385_texExists $const1 	%line{134} %argrw{"wr"}
+	assign		___380_texExists $const1 	%line{134} %argrw{"wr"}
 # src/PxrTexture.h:135
 #     if (path == "") {
 	eq		$tmp14 filename_d1 $const8 	%line{135} %argrw{"wrr"}
 	if		$tmp14 35 38 	%argrw{"r"}
 # src/PxrTexture.h:136
 #         texExists = 0;
-	assign		___385_texExists $const4 	%line{136} %argrw{"wr"}
+	assign		___380_texExists $const4 	%line{136} %argrw{"wr"}
 # src/PxrTexture.h:139
 #         if (checkMissing > 0) {
 	gt		$tmp15 $const4 $const4 	%line{139} %argrw{"wrr"}
 	if		$tmp15 38 38 	%argrw{"r"}
 # src/PxrTexture.h:143
 #             gettextureinfo(path, "exists", texExists);
-	gettextureinfo	$tmp16 filename_d1 $const9 ___385_texExists 	%line{143} %argrw{"wrrw"}
+	gettextureinfo	$tmp16 filename_d1 $const9 ___380_texExists 	%line{143} %argrw{"wrrw"}
 # src/PxrTexture.h:146
 #     if (texExists == 0) {
-	eq		$tmp17 ___385_texExists $const4 	%line{146} %argrw{"wrr"}
+	eq		$tmp17 ___380_texExists $const4 	%line{146} %argrw{"wrr"}
 	if		$tmp17 50 54 	%argrw{"r"}
 # src/PxrTexture.h:147
 #         if (checkMissing == 1 && path != "") {
@@ -295,314 +302,328 @@ code ___main___
 	warning		$const10 filename_d1 	%line{148} %argrw{"rr"}
 # src/PxrTexture.h:150
 #         result.c = missingColor;
-	assign		___394_resultRGBA_d2.c $const6 	%line{150} %argrw{"wr"}
+	assign		___389_resultRGBA_d2.c $const6 	%line{150} %argrw{"wr"}
 # src/PxrTexture.h:151
 #         result.a = missingAlpha;
-	assign		___394_resultRGBA_d2.a $const5 	%line{151} %argrw{"wr"}
+	assign		___389_resultRGBA_d2.a $const5 	%line{151} %argrw{"wr"}
 # src/PxrTexture.h:154
 #         result.c = texture(path, s, 1.0 - t, 
-	sub		$tmp22 $const3 ___394_inputT 	%line{154} %argrw{"wrr"}
+	sub		$tmp22 $const3 ___389_inputT 	%line{154} %argrw{"wrr"}
 # src/PxrTexture.h:167
 #                 "subimage", max(subimage, 0)
 	max		$tmp23 $const4 $const4 	%line{167} %argrw{"wrr"}
 # src/PxrTexture.h:154
 #         result.c = texture(path, s, 1.0 - t, 
-	texture		___394_resultRGBA_d2.c filename_d1 ___394_inputS $tmp22 $const11 ___394_resultRGBA_d2.a $const12 $const2 $const13 $const5 $const14 $const6 $const15 $const5 $const16 $const3 $const17 $const20 $const18 $const3 $const19 $tmp23 	%line{154} %argrw{"wrrrrwrrrrrrrrrrrrrrrr"} %argderivs{2,3}
-	assign		___394_resultRGBA_d2.c ___394_resultRGBA_d2.c 	%argrw{"wr"}
+	texture		___389_resultRGBA_d2.c filename_d1 ___389_inputS $tmp22 $const11 ___389_resultRGBA_d2.a $const12 $const2 $const13 $const5 $const14 $const6 $const15 $const5 $const16 $const3 $const17 $const20 $const18 $const3 $const19 $tmp23 	%line{154} %argrw{"wrrrrwrrrrrrrrrrrrrrrr"} %argderivs{2,3}
+	assign		___389_resultRGBA_d2.c ___389_resultRGBA_d2.c 	%argrw{"wr"}
 # src/PxrBump2RoughnessRead.osl:242
 #         deriv1 = resultRGBA_d1.c;
-	assign		___394_deriv1 ___394_resultRGBA_d1.c 	%filename{"src/PxrBump2RoughnessRead.osl"} %line{242} %argrw{"wr"}
+	assign		___389_deriv1 ___389_resultRGBA_d1.c 	%filename{"src/PxrBump2RoughnessRead.osl"} %line{242} %argrw{"wr"}
 # src/PxrBump2RoughnessRead.osl:243
 #         deriv2 = resultRGBA_d2.c;
-	assign		___394_deriv2 ___394_resultRGBA_d2.c 	%line{243} %argrw{"wr"}
+	assign		___389_deriv2 ___389_resultRGBA_d2.c 	%line{243} %argrw{"wr"}
 # src/PxrBump2RoughnessRead.osl:249
 #         float mys = inputS;
-	assign		___394_mys ___394_inputS 	%line{249} %argrw{"wr"}
+	assign		___389_mys ___389_inputS 	%line{249} %argrw{"wr"}
 # src/PxrBump2RoughnessRead.osl:250
 #         float myt = inputT;
-	assign		___394_myt ___394_inputT 	%line{250} %argrw{"wr"}
+	assign		___389_myt ___389_inputT 	%line{250} %argrw{"wr"}
 # src/PxrBump2RoughnessRead.osl:253
 #         partialDeriv(P, mys, myt, pPps, pPpt);
 	functioncall	$const21 77 	%line{253} %argrw{"r"}
 # src/PxrBump2Roughness.h:58
 #     vector dQdx = Dx(Q);
-	Dx		___337_dQdx P 	%filename{"src/PxrBump2Roughness.h"} %line{58} %argrw{"wr"} %argderivs{1}
+	Dx		___332_dQdx P 	%filename{"src/PxrBump2Roughness.h"} %line{58} %argrw{"wr"} %argderivs{1}
 # src/PxrBump2Roughness.h:59
 #     vector dQdy = Dy(Q);
-	Dy		___337_dQdy P 	%line{59} %argrw{"wr"} %argderivs{1}
+	Dy		___332_dQdy P 	%line{59} %argrw{"wr"} %argderivs{1}
 # src/PxrBump2Roughness.h:61
 #     float A = Dx(a);
-	Dx		___337_A ___394_mys 	%line{61} %argrw{"wr"} %argderivs{1}
+	Dx		___332_A ___389_mys 	%line{61} %argrw{"wr"} %argderivs{1}
 # src/PxrBump2Roughness.h:62
 #     float B = Dx(b);
-	Dx		___337_B ___394_myt 	%line{62} %argrw{"wr"} %argderivs{1}
+	Dx		___332_B ___389_myt 	%line{62} %argrw{"wr"} %argderivs{1}
 # src/PxrBump2Roughness.h:63
 #     float C = Dy(a);
-	Dy		___337_C ___394_mys 	%line{63} %argrw{"wr"} %argderivs{1}
+	Dy		___332_C ___389_mys 	%line{63} %argrw{"wr"} %argderivs{1}
 # src/PxrBump2Roughness.h:64
 #     float D = Dy(b);
-	Dy		___337_D ___394_myt 	%line{64} %argrw{"wr"} %argderivs{1}
+	Dy		___332_D ___389_myt 	%line{64} %argrw{"wr"} %argderivs{1}
 # src/PxrBump2Roughness.h:66
 #     float invdet = 1.0/(A*D - B*C);
-	mul		$tmp24 ___337_A ___337_D 	%line{66} %argrw{"wrr"}
-	mul		$tmp25 ___337_B ___337_C 	%argrw{"wrr"}
+	mul		$tmp24 ___332_A ___332_D 	%line{66} %argrw{"wrr"}
+	mul		$tmp25 ___332_B ___332_C 	%argrw{"wrr"}
 	sub		$tmp26 $tmp24 $tmp25 	%argrw{"wrr"}
-	div		___337_invdet $const3 $tmp26 	%argrw{"wrr"}
+	div		___332_invdet $const3 $tmp26 	%argrw{"wrr"}
 # src/PxrBump2Roughness.h:68
 #     dQda = (dQdx*D-dQdy*B)*invdet;
-	mul		$tmp27 ___337_dQdx ___337_D 	%line{68} %argrw{"wrr"}
-	mul		$tmp28 ___337_dQdy ___337_B 	%argrw{"wrr"}
+	mul		$tmp27 ___332_dQdx ___332_D 	%line{68} %argrw{"wrr"}
+	mul		$tmp28 ___332_dQdy ___332_B 	%argrw{"wrr"}
 	sub		$tmp29 $tmp27 $tmp28 	%argrw{"wrr"}
-	mul		___394_pPps $tmp29 ___337_invdet 	%argrw{"wrr"}
+	mul		___389_pPps $tmp29 ___332_invdet 	%argrw{"wrr"}
 # src/PxrBump2Roughness.h:69
 #     dQdb = (dQdy*A-dQdx*C)*invdet;
-	mul		$tmp30 ___337_dQdy ___337_A 	%line{69} %argrw{"wrr"}
-	mul		$tmp31 ___337_dQdx ___337_C 	%argrw{"wrr"}
+	mul		$tmp30 ___332_dQdy ___332_A 	%line{69} %argrw{"wrr"}
+	mul		$tmp31 ___332_dQdx ___332_C 	%argrw{"wrr"}
 	sub		$tmp32 $tmp30 $tmp31 	%argrw{"wrr"}
-	mul		___394_pPpt $tmp32 ___337_invdet 	%argrw{"wrr"}
+	mul		___389_pPpt $tmp32 ___332_invdet 	%argrw{"wrr"}
 # src/PxrBump2RoughnessRead.osl:255
 #         test_tex01 = pPps;
-	assign		test_tex01 ___394_pPps 	%filename{"src/PxrBump2RoughnessRead.osl"} %line{255} %argrw{"wr"}
+	assign		test_tex01 ___389_pPps 	%filename{"src/PxrBump2RoughnessRead.osl"} %line{255} %argrw{"wr"}
 # src/PxrBump2RoughnessRead.osl:256
 #         test_tex02 = pPpt;
-	assign		test_tex02 ___394_pPpt 	%line{256} %argrw{"wr"}
+	assign		test_tex02 ___389_pPpt 	%line{256} %argrw{"wr"}
 # src/PxrBump2RoughnessRead.osl:264
 #         float dx=deriv1[1];
-	compref		___394_dx ___394_deriv1 $const1 	%line{264} %argrw{"wrr"}
+	compref		___389_dx ___389_deriv1 $const1 	%line{264} %argrw{"wrr"}
 # src/PxrBump2RoughnessRead.osl:265
 #         float dy=deriv1[2];
-	compref		___394_dy ___394_deriv1 $const22 	%line{265} %argrw{"wrr"}
+	compref		___389_dy ___389_deriv1 $const22 	%line{265} %argrw{"wrr"}
 # src/PxrBump2RoughnessRead.osl:266
 #         float dxdx=deriv2[0];
-	compref		___394_dxdx ___394_deriv2 $const4 	%line{266} %argrw{"wrr"}
+	compref		___389_dxdx ___389_deriv2 $const4 	%line{266} %argrw{"wrr"}
 # src/PxrBump2RoughnessRead.osl:267
 #         float dydy=deriv2[1];
-	compref		___394_dydy ___394_deriv2 $const1 	%line{267} %argrw{"wrr"}
+	compref		___389_dydy ___389_deriv2 $const1 	%line{267} %argrw{"wrr"}
 # src/PxrBump2RoughnessRead.osl:268
 #         float dxdy=deriv2[2];
-	compref		___394_dxdy ___394_deriv2 $const22 	%line{268} %argrw{"wrr"}
+	compref		___389_dxdy ___389_deriv2 $const22 	%line{268} %argrw{"wrr"}
 # src/PxrBump2RoughnessRead.osl:274
 #         if (invertBumpNormal == 0){
 	eq		$tmp33 invertBumpNormal $const4 	%line{274} %argrw{"wrr"}
 	if		$tmp33 88 88 	%argrw{"r"}
 # src/PxrBump2RoughnessRead.osl:275
 #             dx = -dx;
-	neg		___394_dx ___394_dx 	%line{275} %argrw{"wr"}
+	neg		___389_dx ___389_dx 	%line{275} %argrw{"wr"}
 # src/PxrBump2RoughnessRead.osl:276
 #             dy = -dy;
-	neg		___394_dy ___394_dy 	%line{276} %argrw{"wr"}
+	neg		___389_dy ___389_dy 	%line{276} %argrw{"wr"}
 # src/PxrBump2RoughnessRead.osl:280
 #         vector PN = cross(pPps,pPpt);
-	cross		___394_PN ___394_pPps ___394_pPpt 	%line{280} %argrw{"wrr"}
+	cross		___389_PN ___389_pPps ___389_pPpt 	%line{280} %argrw{"wrr"}
 # src/PxrBump2RoughnessRead.osl:286
 #         int lefthanded = 0; 
-	assign		___394_lefthanded $const4 	%line{286} %argrw{"wr"}
+	assign		___389_lefthanded $const4 	%line{286} %argrw{"wr"}
 # src/PxrBump2RoughnessRead.osl:287
 #         if (dot(PN,Ng)<0) {
-	dot		$tmp34 ___394_PN Ng 	%line{287} %argrw{"wrr"}
+	dot		$tmp34 ___389_PN Ng 	%line{287} %argrw{"wrr"}
 	lt		$tmp35 $tmp34 $const4 	%argrw{"wrr"}
 	if		$tmp35 94 94 	%argrw{"r"}
 # src/PxrBump2RoughnessRead.osl:292
 #             lefthanded = 1;
-	assign		___394_lefthanded $const1 	%line{292} %argrw{"wr"}
+	assign		___389_lefthanded $const1 	%line{292} %argrw{"wr"}
 # src/PxrBump2RoughnessRead.osl:305
 #         PN = normalize(N);
-	normalize	___394_PN N 	%line{305} %argrw{"wr"}
+	normalize	___389_PN N 	%line{305} %argrw{"wr"}
 # src/PxrBump2RoughnessRead.osl:306
 #         if (lefthanded==1) PN = -PN;
-	eq		$tmp36 ___394_lefthanded $const1 	%line{306} %argrw{"wrr"}
+	eq		$tmp36 ___389_lefthanded $const1 	%line{306} %argrw{"wrr"}
 	if		$tmp36 98 98 	%argrw{"r"}
-	neg		___394_PN ___394_PN 	%argrw{"wr"}
+	neg		___389_PN ___389_PN 	%argrw{"wr"}
 # src/PxrBump2RoughnessRead.osl:307
 #         pPps = normalize(cross(pPpt,PN));
-	cross		$tmp37 ___394_pPpt ___394_PN 	%line{307} %argrw{"wrr"}
-	normalize	___394_pPps $tmp37 	%argrw{"wr"}
+	cross		$tmp37 ___389_pPpt ___389_PN 	%line{307} %argrw{"wrr"}
+	normalize	___389_pPps $tmp37 	%argrw{"wr"}
 # src/PxrBump2RoughnessRead.osl:308
 #         pPpt = cross(PN,pPps);
-	cross		___394_pPpt ___394_PN ___394_pPps 	%line{308} %argrw{"wrr"}
+	cross		___389_pPpt ___389_PN ___389_pPps 	%line{308} %argrw{"wrr"}
 # src/PxrBump2RoughnessRead.osl:312
 #         if (lefthanded==0) resultBumpNormal = vector(dx*bumpNormalGain, dy*bumpNormalGain, 1);
-	eq		$tmp38 ___394_lefthanded $const4 	%line{312} %argrw{"wrr"}
+	eq		$tmp38 ___389_lefthanded $const4 	%line{312} %argrw{"wrr"}
 	if		$tmp38 106 109 	%argrw{"r"}
-	mul		$tmp39 ___394_dx bumpNormalGain 	%argrw{"wrr"}
-	mul		$tmp40 ___394_dy bumpNormalGain 	%argrw{"wrr"}
+	mul		$tmp39 ___389_dx bumpNormalGain 	%argrw{"wrr"}
+	mul		$tmp40 ___389_dy bumpNormalGain 	%argrw{"wrr"}
 	vector		resultBumpNormal $tmp39 $tmp40 $const3 	%argrw{"wrrr"}
 # src/PxrBump2RoughnessRead.osl:313
 #         else resultBumpNormal = vector(dx*bumpNormalGain, dy*bumpNormalGain, -1);
-	mul		$tmp41 ___394_dx bumpNormalGain 	%line{313} %argrw{"wrr"}
-	mul		$tmp42 ___394_dy bumpNormalGain 	%argrw{"wrr"}
+	mul		$tmp41 ___389_dx bumpNormalGain 	%line{313} %argrw{"wrr"}
+	mul		$tmp42 ___389_dy bumpNormalGain 	%argrw{"wrr"}
 	vector		resultBumpNormal $tmp41 $tmp42 $const24 	%argrw{"wrrr"}
+# src/PxrBump2RoughnessRead.osl:315
+#         resultBumpNormal = pPps*resultBumpNormal[0] 
+	compref		$tmp43 resultBumpNormal $const4 	%line{315} %argrw{"wrr"}
+	mul		$tmp44 ___389_pPps $tmp43 	%argrw{"wrr"}
+# src/PxrBump2RoughnessRead.osl:316
+#                          + pPpt*resultBumpNormal[1]
+	compref		$tmp45 resultBumpNormal $const1 	%line{316} %argrw{"wrr"}
+	mul		$tmp46 ___389_pPpt $tmp45 	%argrw{"wrr"}
+	add		$tmp47 $tmp44 $tmp46 	%argrw{"wrr"}
+# src/PxrBump2RoughnessRead.osl:317
+#                          + PN*resultBumpNormal[2];		//project into P space;
+	compref		$tmp48 resultBumpNormal $const22 	%line{317} %argrw{"wrr"}
+	mul		$tmp49 ___389_PN $tmp48 	%argrw{"wrr"}
+	add		resultBumpNormal $tmp47 $tmp49 	%argrw{"wrr"}
 # src/PxrBump2RoughnessRead.osl:318
 #         resultBumpNormal = normalize(resultBumpNormal);
 	normalize	resultBumpNormal resultBumpNormal 	%line{318} %argrw{"wr"}
 # src/PxrBump2RoughnessRead.osl:321
 #         float vargain = gain * gain;
-	mul		___394_vargain gain gain 	%line{321} %argrw{"wrr"}
+	mul		___389_vargain gain gain 	%line{321} %argrw{"wrr"}
 # src/PxrBump2RoughnessRead.osl:322
 #         float sxx = 2*vargain*(dxdx - dx*dx);
-	mul		$tmp43 $const25 ___394_vargain 	%line{322} %argrw{"wrr"}
-	mul		$tmp44 ___394_dx ___394_dx 	%argrw{"wrr"}
-	sub		$tmp45 ___394_dxdx $tmp44 	%argrw{"wrr"}
-	mul		___394_sxx $tmp43 $tmp45 	%argrw{"wrr"}
+	mul		$tmp50 $const25 ___389_vargain 	%line{322} %argrw{"wrr"}
+	mul		$tmp51 ___389_dx ___389_dx 	%argrw{"wrr"}
+	sub		$tmp52 ___389_dxdx $tmp51 	%argrw{"wrr"}
+	mul		___389_sxx $tmp50 $tmp52 	%argrw{"wrr"}
 # src/PxrBump2RoughnessRead.osl:323
 #         float sxy = 2*vargain*(dxdy - dx*dy);
-	mul		$tmp46 $const25 ___394_vargain 	%line{323} %argrw{"wrr"}
-	mul		$tmp47 ___394_dx ___394_dy 	%argrw{"wrr"}
-	sub		$tmp48 ___394_dxdy $tmp47 	%argrw{"wrr"}
-	mul		___394_sxy $tmp46 $tmp48 	%argrw{"wrr"}
+	mul		$tmp53 $const25 ___389_vargain 	%line{323} %argrw{"wrr"}
+	mul		$tmp54 ___389_dx ___389_dy 	%argrw{"wrr"}
+	sub		$tmp55 ___389_dxdy $tmp54 	%argrw{"wrr"}
+	mul		___389_sxy $tmp53 $tmp55 	%argrw{"wrr"}
 # src/PxrBump2RoughnessRead.osl:324
 #         float syy = 2*vargain*(dydy - dy*dy);
-	mul		$tmp49 $const25 ___394_vargain 	%line{324} %argrw{"wrr"}
-	mul		$tmp50 ___394_dy ___394_dy 	%argrw{"wrr"}
-	sub		$tmp51 ___394_dydy $tmp50 	%argrw{"wrr"}
-	mul		___394_syy $tmp49 $tmp51 	%argrw{"wrr"}
+	mul		$tmp56 $const25 ___389_vargain 	%line{324} %argrw{"wrr"}
+	mul		$tmp57 ___389_dy ___389_dy 	%argrw{"wrr"}
+	sub		$tmp58 ___389_dydy $tmp57 	%argrw{"wrr"}
+	mul		___389_syy $tmp56 $tmp58 	%argrw{"wrr"}
 # src/PxrBump2RoughnessRead.osl:329
 #         covarToEigen2D(sxx, sxy, syy, l1, l2, v1, v2);
-	functioncall	$const26 152 	%line{329} %argrw{"r"}
-# src/PxrBump2Roughness.h:99
+	functioncall	$const26 160 	%line{329} %argrw{"r"}
+# src/PxrBump2Roughness.h:100
 #     float del = sqrt(a*a+4*b*b-2*a*c+c*c);
-	mul		$tmp52 ___394_sxx ___394_sxx 	%filename{"src/PxrBump2Roughness.h"} %line{99} %argrw{"wrr"}
-	mul		$tmp53 $const28 ___394_sxy 	%argrw{"wrr"}
-	mul		$tmp54 $tmp53 ___394_sxy 	%argrw{"wrr"}
-	add		$tmp55 $tmp52 $tmp54 	%argrw{"wrr"}
-	mul		$tmp56 $const25 ___394_sxx 	%argrw{"wrr"}
-	mul		$tmp57 $tmp56 ___394_syy 	%argrw{"wrr"}
-	sub		$tmp58 $tmp55 $tmp57 	%argrw{"wrr"}
-	mul		$tmp59 ___394_syy ___394_syy 	%argrw{"wrr"}
-	add		$tmp60 $tmp58 $tmp59 	%argrw{"wrr"}
-	sqrt		___339_del $tmp60 	%argrw{"wr"}
-# src/PxrBump2Roughness.h:102
-#     l1 = .5*(a+c+del);
-	add		$tmp61 ___394_sxx ___394_syy 	%line{102} %argrw{"wrr"}
-	add		$tmp62 $tmp61 ___339_del 	%argrw{"wrr"}
-	mul		___394_l1 $const29 $tmp62 	%argrw{"wrr"}
+	mul		$tmp59 ___389_sxx ___389_sxx 	%filename{"src/PxrBump2Roughness.h"} %line{100} %argrw{"wrr"}
+	mul		$tmp60 $const28 ___389_sxy 	%argrw{"wrr"}
+	mul		$tmp61 $tmp60 ___389_sxy 	%argrw{"wrr"}
+	add		$tmp62 $tmp59 $tmp61 	%argrw{"wrr"}
+	mul		$tmp63 $const25 ___389_sxx 	%argrw{"wrr"}
+	mul		$tmp64 $tmp63 ___389_syy 	%argrw{"wrr"}
+	sub		$tmp65 $tmp62 $tmp64 	%argrw{"wrr"}
+	mul		$tmp66 ___389_syy ___389_syy 	%argrw{"wrr"}
+	add		$tmp67 $tmp65 $tmp66 	%argrw{"wrr"}
+	sqrt		___334_del $tmp67 	%argrw{"wr"}
 # src/PxrBump2Roughness.h:103
+#     l1 = .5*(a+c+del);
+	add		$tmp68 ___389_sxx ___389_syy 	%line{103} %argrw{"wrr"}
+	add		$tmp69 $tmp68 ___334_del 	%argrw{"wrr"}
+	mul		___389_l1 $const29 $tmp69 	%argrw{"wrr"}
+# src/PxrBump2Roughness.h:104
 #     l2 = .5*(a+c-del);
-	add		$tmp63 ___394_sxx ___394_syy 	%line{103} %argrw{"wrr"}
-	sub		$tmp64 $tmp63 ___339_del 	%argrw{"wrr"}
-	mul		___394_l2 $const29 $tmp64 	%argrw{"wrr"}
-# src/PxrBump2Roughness.h:106
-#     v1=vector(0);
-	assign		___394_v1 $const30 	%line{106} %argrw{"wr"}
+	add		$tmp70 ___389_sxx ___389_syy 	%line{104} %argrw{"wrr"}
+	sub		$tmp71 $tmp70 ___334_del 	%argrw{"wrr"}
+	mul		___389_l2 $const29 $tmp71 	%argrw{"wrr"}
 # src/PxrBump2Roughness.h:107
-#     v1[1] = 1;
-	compassign	___394_v1 $const1 $const1 	%line{107} %argrw{"wrr"}
+#     v1=vector(0);
+	assign		___389_v1 $const30 	%line{107} %argrw{"wr"}
 # src/PxrBump2Roughness.h:108
-#     v1[0] = (l1-c)/b;
-	sub		$tmp65 ___394_l1 ___394_syy 	%line{108} %argrw{"wrr"}
-	div		$tmp66 $tmp65 ___394_sxy 	%argrw{"wrr"}
-	compassign	___394_v1 $const4 $tmp66 	%argrw{"wrr"}
+#     v1[1] = 1;
+	compassign	___389_v1 $const1 $const1 	%line{108} %argrw{"wrr"}
 # src/PxrBump2Roughness.h:109
+#     v1[0] = (l1-c)/b;
+	sub		$tmp72 ___389_l1 ___389_syy 	%line{109} %argrw{"wrr"}
+	div		$tmp73 $tmp72 ___389_sxy 	%argrw{"wrr"}
+	compassign	___389_v1 $const4 $tmp73 	%argrw{"wrr"}
+# src/PxrBump2Roughness.h:110
 #     v1 = normalize(v1);
-	normalize	___394_v1 ___394_v1 	%line{109} %argrw{"wr"}
-# src/PxrBump2Roughness.h:111
-#     v2=vector(0);
-	assign		___394_v2 $const30 	%line{111} %argrw{"wr"}
+	normalize	___389_v1 ___389_v1 	%line{110} %argrw{"wr"}
 # src/PxrBump2Roughness.h:112
-#     v2[1] = 1;
-	compassign	___394_v2 $const1 $const1 	%line{112} %argrw{"wrr"}
+#     v2=vector(0);
+	assign		___389_v2 $const30 	%line{112} %argrw{"wr"}
 # src/PxrBump2Roughness.h:113
-#     v2[0] = (l2-c)/b;
-	sub		$tmp67 ___394_l2 ___394_syy 	%line{113} %argrw{"wrr"}
-	div		$tmp68 $tmp67 ___394_sxy 	%argrw{"wrr"}
-	compassign	___394_v2 $const4 $tmp68 	%argrw{"wrr"}
+#     v2[1] = 1;
+	compassign	___389_v2 $const1 $const1 	%line{113} %argrw{"wrr"}
 # src/PxrBump2Roughness.h:114
+#     v2[0] = (l2-c)/b;
+	sub		$tmp74 ___389_l2 ___389_syy 	%line{114} %argrw{"wrr"}
+	div		$tmp75 $tmp74 ___389_sxy 	%argrw{"wrr"}
+	compassign	___389_v2 $const4 $tmp75 	%argrw{"wrr"}
+# src/PxrBump2Roughness.h:115
 #     v2 = normalize(v2);
-	normalize	___394_v2 ___394_v2 	%line{114} %argrw{"wr"}
+	normalize	___389_v2 ___389_v2 	%line{115} %argrw{"wr"}
 # src/PxrBump2RoughnessRead.osl:341
 #         vector _pPpu = -pPps*v1[0]+pPpt*v1[1];
-	neg		$tmp69 ___394_pPps 	%filename{"src/PxrBump2RoughnessRead.osl"} %line{341} %argrw{"wr"}
-	compref		$tmp70 ___394_v1 $const4 	%argrw{"wrr"}
-	mul		$tmp71 $tmp69 $tmp70 	%argrw{"wrr"}
-	compref		$tmp72 ___394_v1 $const1 	%argrw{"wrr"}
-	mul		$tmp73 ___394_pPpt $tmp72 	%argrw{"wrr"}
-	add		___394__pPpu $tmp71 $tmp73 	%argrw{"wrr"}
+	neg		$tmp76 ___389_pPps 	%filename{"src/PxrBump2RoughnessRead.osl"} %line{341} %argrw{"wr"}
+	compref		$tmp77 ___389_v1 $const4 	%argrw{"wrr"}
+	mul		$tmp78 $tmp76 $tmp77 	%argrw{"wrr"}
+	compref		$tmp79 ___389_v1 $const1 	%argrw{"wrr"}
+	mul		$tmp80 ___389_pPpt $tmp79 	%argrw{"wrr"}
+	add		___389__pPpu $tmp78 $tmp80 	%argrw{"wrr"}
 # src/PxrBump2RoughnessRead.osl:342
 #         vector _pPpv = -pPps*v2[0]+pPpt*v2[1];
-	neg		$tmp74 ___394_pPps 	%line{342} %argrw{"wr"}
-	compref		$tmp75 ___394_v2 $const4 	%argrw{"wrr"}
-	mul		$tmp76 $tmp74 $tmp75 	%argrw{"wrr"}
-	compref		$tmp77 ___394_v2 $const1 	%argrw{"wrr"}
-	mul		$tmp78 ___394_pPpt $tmp77 	%argrw{"wrr"}
-	add		___394__pPpv $tmp76 $tmp78 	%argrw{"wrr"}
+	neg		$tmp81 ___389_pPps 	%line{342} %argrw{"wr"}
+	compref		$tmp82 ___389_v2 $const4 	%argrw{"wrr"}
+	mul		$tmp83 $tmp81 $tmp82 	%argrw{"wrr"}
+	compref		$tmp84 ___389_v2 $const1 	%argrw{"wrr"}
+	mul		$tmp85 ___389_pPpt $tmp84 	%argrw{"wrr"}
+	add		___389__pPpv $tmp83 $tmp85 	%argrw{"wrr"}
 # src/PxrBump2RoughnessRead.osl:344
 #         float base_roughsqr = baseRoughness*baseRoughness;
-	mul		___394_base_roughsqr baseRoughness baseRoughness 	%line{344} %argrw{"wrr"}
+	mul		___389_base_roughsqr baseRoughness baseRoughness 	%line{344} %argrw{"wrr"}
 # src/PxrBump2RoughnessRead.osl:351
 #         float varianceU = l1+base_roughsqr;
-	add		___394_varianceU ___394_l1 ___394_base_roughsqr 	%line{351} %argrw{"wrr"}
+	add		___389_varianceU ___389_l1 ___389_base_roughsqr 	%line{351} %argrw{"wrr"}
 # src/PxrBump2RoughnessRead.osl:352
 #         float varianceV = l2+base_roughsqr;
-	add		___394_varianceV ___394_l2 ___394_base_roughsqr 	%line{352} %argrw{"wrr"}
+	add		___389_varianceV ___389_l2 ___389_base_roughsqr 	%line{352} %argrw{"wrr"}
 # src/PxrBump2RoughnessRead.osl:355
 #         float resultRoughnessU = sqrt(varianceU)+1e-12;
-	sqrt		$tmp79 ___394_varianceU 	%line{355} %argrw{"wr"}
-	add		___394_resultRoughnessU $tmp79 $const31 	%argrw{"wrr"}
+	sqrt		$tmp86 ___389_varianceU 	%line{355} %argrw{"wr"}
+	add		___389_resultRoughnessU $tmp86 $const31 	%argrw{"wrr"}
 # src/PxrBump2RoughnessRead.osl:356
 #         float resultRoughnessV = sqrt(varianceV)+1e-12;
-	sqrt		$tmp80 ___394_varianceV 	%line{356} %argrw{"wr"}
-	add		___394_resultRoughnessV $tmp80 $const31 	%argrw{"wrr"}
+	sqrt		$tmp87 ___389_varianceV 	%line{356} %argrw{"wr"}
+	add		___389_resultRoughnessV $tmp87 $const31 	%argrw{"wrr"}
 # src/PxrBump2RoughnessRead.osl:358
 #         float rudivrv = resultRoughnessU/resultRoughnessV;
-	div		___394_rudivrv ___394_resultRoughnessU ___394_resultRoughnessV 	%line{358} %argrw{"wrr"}
+	div		___389_rudivrv ___389_resultRoughnessU ___389_resultRoughnessV 	%line{358} %argrw{"wrr"}
 # src/PxrBump2RoughnessRead.osl:359
 #         float resultAnisotropy = (rudivrv-1.0)/(rudivrv+1.0);
-	sub		$tmp81 ___394_rudivrv $const3 	%line{359} %argrw{"wrr"}
-	add		$tmp82 ___394_rudivrv $const3 	%argrw{"wrr"}
-	div		___394_resultAnisotropy $tmp81 $tmp82 	%argrw{"wrr"}
+	sub		$tmp88 ___389_rudivrv $const3 	%line{359} %argrw{"wrr"}
+	add		$tmp89 ___389_rudivrv $const3 	%argrw{"wrr"}
+	div		___389_resultAnisotropy $tmp88 $tmp89 	%argrw{"wrr"}
 # src/PxrBump2RoughnessRead.osl:361
 #         if (anisotropyGain != 1.0){
-	neq		$tmp83 anisotropyGain $const3 	%line{361} %argrw{"wrr"}
-	if		$tmp83 192 192 	%argrw{"r"}
+	neq		$tmp90 anisotropyGain $const3 	%line{361} %argrw{"wrr"}
+	if		$tmp90 200 200 	%argrw{"r"}
 # src/PxrBump2RoughnessRead.osl:362
 #             resultAnisotropy = clamp(resultAnisotropy*anisotropyGain, 
-	mul		$tmp84 ___394_resultAnisotropy anisotropyGain 	%line{362} %argrw{"wrr"}
-	functioncall	$const32 181 	%argrw{"r"}
-# /home/cactus/Arnold-7.0.0.0-linux/osl/include/stdosl.h:141
+	mul		$tmp91 ___389_resultAnisotropy anisotropyGain 	%line{362} %argrw{"wrr"}
+	functioncall	$const32 189 	%argrw{"r"}
+# /Applications/Autodesk/Arnold/mtoa/2020/osl/include/stdosl.h:163
 # float  clamp (float x, float minval, float maxval) { return max(min(x,maxval),minval); }
-	min		$tmp85 $tmp84 $const3 	%filename{"/home/cactus/Arnold-7.0.0.0-linux/osl/include/stdosl.h"} %line{141} %argrw{"wrr"}
-	max		___394_resultAnisotropy $tmp85 $const5 	%argrw{"wrr"}
+	min		$tmp92 $tmp91 $const3 	%filename{"/Applications/Autodesk/Arnold/mtoa/2020/osl/include/stdosl.h"} %line{163} %argrw{"wrr"}
+	max		___389_resultAnisotropy $tmp92 $const5 	%argrw{"wrr"}
 # src/PxrBump2RoughnessRead.osl:365
 #             float _alpha = 1.0/(resultAnisotropy*resultAnisotropy-
-	mul		$tmp86 ___394_resultAnisotropy ___394_resultAnisotropy 	%filename{"src/PxrBump2RoughnessRead.osl"} %line{365} %argrw{"wrr"}
+	mul		$tmp93 ___389_resultAnisotropy ___389_resultAnisotropy 	%filename{"src/PxrBump2RoughnessRead.osl"} %line{365} %argrw{"wrr"}
 # src/PxrBump2RoughnessRead.osl:366
 #                                 2.0*resultAnisotropy+2.0);
-	mul		$tmp87 $const25 ___394_resultAnisotropy 	%line{366} %argrw{"wrr"}
+	mul		$tmp94 $const25 ___389_resultAnisotropy 	%line{366} %argrw{"wrr"}
 # src/PxrBump2RoughnessRead.osl:365
 #             float _alpha = 1.0/(resultAnisotropy*resultAnisotropy-
-	sub		$tmp88 $tmp86 $tmp87 	%line{365} %argrw{"wrr"}
+	sub		$tmp95 $tmp93 $tmp94 	%line{365} %argrw{"wrr"}
 # src/PxrBump2RoughnessRead.osl:366
 #                                 2.0*resultAnisotropy+2.0);
-	add		$tmp89 $tmp88 $const25 	%line{366} %argrw{"wrr"}
+	add		$tmp96 $tmp95 $const25 	%line{366} %argrw{"wrr"}
 # src/PxrBump2RoughnessRead.osl:365
 #             float _alpha = 1.0/(resultAnisotropy*resultAnisotropy-
-	div		___397__alpha $const3 $tmp89 	%line{365} %argrw{"wrr"}
+	div		___392__alpha $const3 $tmp96 	%line{365} %argrw{"wrr"}
 # src/PxrBump2RoughnessRead.osl:368
 #             float variance = varianceU+varianceV;
-	add		___397_variance ___394_varianceU ___394_varianceV 	%line{368} %argrw{"wrr"}
+	add		___392_variance ___389_varianceU ___389_varianceV 	%line{368} %argrw{"wrr"}
 # src/PxrBump2RoughnessRead.osl:369
 #             varianceU = variance * _alpha;
-	mul		___394_varianceU ___397_variance ___397__alpha 	%line{369} %argrw{"wrr"}
+	mul		___389_varianceU ___392_variance ___392__alpha 	%line{369} %argrw{"wrr"}
 # src/PxrBump2RoughnessRead.osl:370
 #             varianceV = variance *(1.0-_alpha);
-	sub		$tmp90 $const3 ___397__alpha 	%line{370} %argrw{"wrr"}
-	mul		___394_varianceV ___397_variance $tmp90 	%argrw{"wrr"}
+	sub		$tmp97 $const3 ___392__alpha 	%line{370} %argrw{"wrr"}
+	mul		___389_varianceV ___392_variance $tmp97 	%argrw{"wrr"}
 # src/PxrBump2RoughnessRead.osl:372
 #             resultRoughnessU = sqrt(varianceU);
-	sqrt		___394_resultRoughnessU ___394_varianceU 	%line{372} %argrw{"wr"}
+	sqrt		___389_resultRoughnessU ___389_varianceU 	%line{372} %argrw{"wr"}
 # src/PxrBump2RoughnessRead.osl:373
 #             resultRoughnessV = sqrt(varianceV);
-	sqrt		___394_resultRoughnessV ___394_varianceV 	%line{373} %argrw{"wr"}
+	sqrt		___389_resultRoughnessV ___389_varianceV 	%line{373} %argrw{"wr"}
 # src/PxrBump2RoughnessRead.osl:377
 #         resultRoughness           = resultRoughnessU/(1+resultAnisotropy);
-	add		$tmp91 $const3 ___394_resultAnisotropy 	%line{377} %argrw{"wrr"}
-	div		resultRoughness ___394_resultRoughnessU $tmp91 	%argrw{"wrr"}
+	add		$tmp98 $const3 ___389_resultAnisotropy 	%line{377} %argrw{"wrr"}
+	div		resultRoughness ___389_resultRoughnessU $tmp98 	%argrw{"wrr"}
 # src/PxrBump2RoughnessRead.osl:378
 #         resultAnisotropyDirection = _pPpu;
-	assign		resultAnisotropyDirection ___394__pPpu 	%line{378} %argrw{"wr"}
+	assign		resultAnisotropyDirection ___389__pPpu 	%line{378} %argrw{"wr"}
 # src/PxrBump2RoughnessRead.osl:379
 #         resultHeightMap           = deriv1[0];
-	compref		resultHeightMap ___394_deriv1 $const4 	%line{379} %argrw{"wrr"}
+	compref		resultHeightMap ___389_deriv1 $const4 	%line{379} %argrw{"wrr"}
 # src/PxrBump2RoughnessRead.osl:398
 #         resultRoughness = baseRoughness;
 	assign		resultRoughness baseRoughness 	%line{398} %argrw{"wr"}
