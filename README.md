@@ -17,7 +17,7 @@ This image becomes the input of the PxrBump2RoughnessRead shader. The pre-comput
 
 All that's left now is to plug this image into the shader, and plug the outputs into the correct slots of a standard_surface shader.
 
-![](docs/node_setup.png)
+![](docs/node_connection.png)
 
 -------
 #### Ignore
