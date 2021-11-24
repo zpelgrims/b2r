@@ -1,5 +1,5 @@
 OpenShadingLanguage 1.00
-# Compiled by oslc 1.12.0
+# Compiled by oslc 1.11.0dev
 # options: -o dist/PxrBump2RoughnessRead.oso
 shader PxrBump2RoughnessRead
 param	int	enable	1		%meta{string,widget,"checkBox"} %meta{int,connectable,0} %meta{string,help,"This will enabling Bump Roughness or disable it"}  %read{0,0} %write{2147483647,-1}
@@ -485,6 +485,11 @@ code ___main___
 	add		$tmp69 $tmp68 ___339_del 	%argrw{"wrr"}
 	mul		___393_l1 $const31 $tmp69 	%argrw{"wrr"}
 # src/PxrBump2Roughness.h:103
+#     l1 = .5*(a+c+del);
+	add		$tmp68 ___389_sxx ___389_syy 	%line{103} %argrw{"wrr"}
+	add		$tmp69 $tmp68 ___334_del 	%argrw{"wrr"}
+	mul		___389_l1 $const29 $tmp69 	%argrw{"wrr"}
+# src/PxrBump2Roughness.h:104
 #     l2 = .5*(a+c-del);
 	add		$tmp70 ___393_sxx ___393_syy 	%line{103} %argrw{"wrr"}
 	sub		$tmp71 $tmp70 ___339_del 	%argrw{"wrr"}
@@ -501,6 +506,11 @@ code ___main___
 	div		$tmp73 $tmp72 ___393_sxy 	%argrw{"wrr"}
 	compassign	___393_v1 $const4 $tmp73 	%argrw{"wrr"}
 # src/PxrBump2Roughness.h:109
+#     v1[0] = (l1-c)/b;
+	sub		$tmp72 ___389_l1 ___389_syy 	%line{109} %argrw{"wrr"}
+	div		$tmp73 $tmp72 ___389_sxy 	%argrw{"wrr"}
+	compassign	___389_v1 $const4 $tmp73 	%argrw{"wrr"}
+# src/PxrBump2Roughness.h:110
 #     v1 = normalize(v1);
 	normalize	___393_v1 ___393_v1 	%line{109} %argrw{"wr"}
 # src/PxrBump2Roughness.h:111
@@ -515,6 +525,11 @@ code ___main___
 	div		$tmp75 $tmp74 ___393_sxy 	%argrw{"wrr"}
 	compassign	___393_v2 $const4 $tmp75 	%argrw{"wrr"}
 # src/PxrBump2Roughness.h:114
+#     v2[0] = (l2-c)/b;
+	sub		$tmp74 ___389_l2 ___389_syy 	%line{114} %argrw{"wrr"}
+	div		$tmp75 $tmp74 ___389_sxy 	%argrw{"wrr"}
+	compassign	___389_v2 $const4 $tmp75 	%argrw{"wrr"}
+# src/PxrBump2Roughness.h:115
 #     v2 = normalize(v2);
 	normalize	___393_v2 ___393_v2 	%line{114} %argrw{"wr"}
 # src/PxrBump2RoughnessRead.osl:337
