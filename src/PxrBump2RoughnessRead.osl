@@ -175,7 +175,7 @@ shader PxrBump2RoughnessRead
 //         string filter = "smartcubic";
 // #endif
         
-        float inputS; float inputT; float textureFilterScale;
+        float textureFilterScale;
         ColorOpacity resultRGBA_d1; ColorOpacity resultRGBA_d2;
         color deriv1; color deriv2;
 
@@ -187,8 +187,6 @@ shader PxrBump2RoughnessRead
         //                   point(0,0,0),point(0,0,1)) * frequency;
         // inputS = QT[0];
         // inputT = QT[1];
-        inputS = s;
-        inputT = t;
         
 // #ifdef PIXAR_ANIM
 //         /* For Pixar Internal Use Only
@@ -229,12 +227,12 @@ shader PxrBump2RoughnessRead
 //             deriv2 = resultRGBA_d2.c;
 //         }
 // #else
-        Texture_GetColor(filename_d1, inputS, inputT, 
+        Texture_GetColor(filename_d1, u, v, 
                         "smartbicubic", 1, 0,
                         color(0), 0, 0,
                         resultRGBA_d1);
         
-        Texture_GetColor(filename_d1, inputS, inputT, 
+        Texture_GetColor(filename_d1, u, v, 
                         "smartbicubic", 1, 0,
                         color(0), 0, 3,
                         resultRGBA_d2);
@@ -246,11 +244,9 @@ shader PxrBump2RoughnessRead
                 
 // #endif
 
-        float mys = inputS;
-        float myt = inputT;
                 
         vector pPps, pPpt;
-        partialDeriv(P, mys, myt, pPps, pPpt);
+        partialDeriv(P, u, v, pPps, pPpt);
 
         test_tex01 = pPps;
         test_tex02 = pPpt;
@@ -356,7 +352,7 @@ shader PxrBump2RoughnessRead
         float resultRoughnessV = sqrt(varianceV)+1e-12;
         
         float rudivrv = resultRoughnessU/resultRoughnessV;
-        float resultAnisotropy = (rudivrv-1.0)/(rudivrv+1.0);
+        resultAnisotropy = (rudivrv-1.0)/(rudivrv+1.0);
             
         if (anisotropyGain != 1.0){
             resultAnisotropy = clamp(resultAnisotropy*anisotropyGain, 
