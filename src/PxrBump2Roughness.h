@@ -51,7 +51,6 @@ struct Struct_Eigen2D
 };
 
 
-// NOTE: I don't think arnold supports Dx(custom variable)
 void partialDeriv(point Q, float a, float b,
                   output vector dQda, output vector dQdb)
 {
@@ -70,7 +69,6 @@ void partialDeriv(point Q, float a, float b,
 }
 
 
-// NOTE: I don't think arnold supports Dx(custom variable)
 void partialDeriv(float Q, float a, float b,
                   output float dQda, output float dQdb)
 {
@@ -178,31 +176,31 @@ void bumpRoughMapping(color D1, color D2,
 /*
     private function use the function below to conform to standard
  */
-// void _combineEigens2D(float al1, float al2, vector av1, vector av2,
-//                      float bl1, float bl2, vector bv1, vector bv2,
-//                      output float ol1, output float ol2,
-//                      output vector ov1, output vector ov2)
-// {
+void _combineEigens2D(float al1, float al2, vector av1, vector av2,
+                     float bl1, float bl2, vector bv1, vector bv2,
+                     output float ol1, output float ol2,
+                     output vector ov1, output vector ov2)
+{
     
-//     vector _av1 = normalize(av1);
-//     vector _av2 = normalize(av2);
-//     vector _bv1 = normalize(bv1);
-//     vector _bv2 = normalize(bv2);
+    vector _av1 = normalize(av1);
+    vector _av2 = normalize(av2);
+    vector _bv1 = normalize(bv1);
+    vector _bv2 = normalize(bv2);
     
-//     if (dot(av1,bv1)<0) {                   // make sure that both eigen vectors are facing the same hemisphere
-//         _bv1=-_bv1;
-//         _bv2=-_bv2;
-//     }
+    if (dot(av1,bv1)<0) {                   // make sure that both eigen vectors are facing the same hemisphere
+        _bv1=-_bv1;
+        _bv2=-_bv2;
+    }
     
-//     ol2 = al2+bl2;                          // this accounts for the isotropic sum of the two eigen spaces
+    ol2 = al2+bl2;                          // this accounts for the isotropic sum of the two eigen spaces
     
-//     vector bv_delta = bl1*_bv1- bl2*_bv1;   // this measures how elliptical b eigenspace is
+    vector bv_delta = bl1*_bv1- bl2*_bv1;   // this measures how elliptical b eigenspace is
     
-//     ov1 = al1*_av1+bv_delta;                // now figure out the anisotropic part of the new eigenvectors
-//     ov2 = normalize(cross(N, ov1));         // then orthogonalize
-//     ol1 = length(ov1);
-//     ov1 = normalize(ov1);    
-// }
+    ov1 = al1*_av1+bv_delta;                // now figure out the anisotropic part of the new eigenvectors
+    ov2 = normalize(cross(N, ov1));         // then orthogonalize
+    ol1 = length(ov1);
+    ov1 = normalize(ov1);    
+}
                                                                                                                                                                                                     
 /*
     private function use the function below to conform to standard
@@ -295,39 +293,39 @@ void _alignEigenB2D(float al1, float al2, vector av1, vector av2,
 /*
     private function use the function below to conform to standard
  */
-void _combineEigens2D(float al1, float al2, vector av1, vector av2,
-                      float bl1, float bl2, vector bv1, vector bv2,
-                      output float ol1, output float ol2, 
-                      output vector ov1, output vector ov2)
-{
+// void _combineEigens2D(float al1, float al2, vector av1, vector av2,
+//                       float bl1, float bl2, vector bv1, vector bv2,
+//                       output float ol1, output float ol2, 
+//                       output vector ov1, output vector ov2)
+// {
     
-    _normalizeEigen2D(al1, al2, av1, av2, al1, al2, av1, av2);
-    _normalizeEigen2D(bl1, bl2, bv1, bv2, bl1, bl2, bv1, bv2);
-    if(al1<al2){
-        _swapEigen2D(al1, al2, av1, av2, al1, al2, av1, av2);
-    }
-    if(bl1<bl2){
-        _swapEigen2D(bl1, bl2, bv1, bv2, bl1, bl2, bv1, bv2);
-    }
-    _forceRhandEigen2D(al1, al2, av1, av2, al1, al2, av1, av2);
-    _forceRhandEigen2D(bl1, bl2, bv1, bv2, bl1, bl2, bv1, bv2);
-    _alignEigenB2D(al1, al2, av1, av2,
-                   bl1, bl2, bv1, bv2,
-                   bl1, bl2, bv1, bv2);
+//     _normalizeEigen2D(al1, al2, av1, av2, al1, al2, av1, av2);
+//     _normalizeEigen2D(bl1, bl2, bv1, bv2, bl1, bl2, bv1, bv2);
+//     if(al1<al2){
+//         _swapEigen2D(al1, al2, av1, av2, al1, al2, av1, av2);
+//     }
+//     if(bl1<bl2){
+//         _swapEigen2D(bl1, bl2, bv1, bv2, bl1, bl2, bv1, bv2);
+//     }
+//     _forceRhandEigen2D(al1, al2, av1, av2, al1, al2, av1, av2);
+//     _forceRhandEigen2D(bl1, bl2, bv1, bv2, bl1, bl2, bv1, bv2);
+//     _alignEigenB2D(al1, al2, av1, av2,
+//                    bl1, bl2, bv1, bv2,
+//                    bl1, bl2, bv1, bv2);
         
-    vector sumv = al1*av1+bl1*bv1;
-    //proof that sin(theta) is the same whether measured from av1 or av2
-    //printf("test.av1=%f,    test.bv1=%f\n", length(cross(normalize(sumv),al1*av1)), length(cross(normalize(sumv),bl1*bv1)));
+//     vector sumv = al1*av1+bl1*bv1;
+//     //proof that sin(theta) is the same whether measured from av1 or av2
+//     //printf("test.av1=%f,    test.bv1=%f\n", length(cross(normalize(sumv),al1*av1)), length(cross(normalize(sumv),bl1*bv1)));
     
-    ol1 = al1+bl1;
-    ol2 = al2+bl2;
-    ov1 = normalize(sumv);
+//     ol1 = al1+bl1;
+//     ol2 = al2+bl2;
+//     ov1 = normalize(sumv);
 
-    //project to tangent plane
-    ov2 = normalize(cross(N, ov1));
-    ov1 = normalize(cross(ov2, N));
+//     //project to tangent plane
+//     ov2 = normalize(cross(N, ov1));
+//     ov1 = normalize(cross(ov2, N));
     
-}
+// }
 
 
 /*
