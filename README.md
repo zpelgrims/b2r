@@ -39,6 +39,7 @@ At this time, Pixar has no plans to provide support or receive contributions to 
 
 More information:
 
+---------
 
 #### Todo:
 
