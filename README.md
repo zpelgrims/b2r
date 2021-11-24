@@ -40,3 +40,8 @@ At this time, Pixar has no plans to provide support or receive contributions to 
 More information:
 
 
+#### Todo:
+
+- validate if the roughness mapping should completely get removed when viewed at the highest mipmap? Pixar's documentation does mention that there will always be a look difference between this and regular bump mapping.
+- generate images showing the main issue it solves
+- generate images of the automatic anisotropic mapping
